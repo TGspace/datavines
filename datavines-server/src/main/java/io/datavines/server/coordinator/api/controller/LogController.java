@@ -17,6 +17,7 @@
 package io.datavines.server.coordinator.api.controller;
 
 import io.datavines.server.DataVinesConstants;
+import io.datavines.server.coordinator.api.annotation.AuthIgnore;
 import io.datavines.server.coordinator.api.aop.RefreshToken;
 import io.datavines.server.coordinator.server.log.LogService;
 import io.swagger.annotations.Api;
@@ -27,26 +28,61 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 @Api(value = "log", tags = "log")
 @RestController
 @RefreshToken
-@RequestMapping(value = DataVinesConstants.BASE_API_PATH + "/log")
+@RequestMapping(value = DataVinesConstants.BASE_API_PATH + "/task/log")
 public class LogController {
 
     @Resource
     private LogService logService;
 
-    @ApiOperation(value = "queryWholeLog", notes = "query whole log's entry")
+    @ApiOperation(value = "queryWholeLog", notes = "query whole task log")
     @GetMapping(value = "/queryWholeLog")
-    public void queryWholeLog(@RequestParam("taskId") Long taskId, HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public Object queryWholeLog(@RequestParam("taskId") Long taskId, HttpServletRequest request, HttpServletResponse response) throws IOException {
         String taskHost = logService.getTaskHost(taskId);
-        response.sendRedirect(request.getScheme()+ "://" + taskHost + "/api/v1/log/queryWholeLogExecute?taskId=" + taskId);
+        Boolean isConcurrentHos = judgeConcurrentHost(request, taskHost);
+        if (isConcurrentHos) {
+            return logService.queryWholeLog(taskId);
+        }
+        response.sendRedirect(request.getScheme() + "://" + taskHost + "/api/v1/task/log/queryWholeLog?taskId=" + taskId);
+        return null;
     }
 
-    @ApiOperation(value = "queryWholeLogExecute", notes = "query whole log really execute by taskId")
-    @GetMapping(value = "/queryWholeLogExecute")
-    public Object queryWholeLogExecute(@RequestParam("taskId") Long taskId) {
-        return logService.queryWholeLog(taskId);
+    @ApiOperation(value = "queryLog", notes = "query task log with offsetLine")
+    @GetMapping(value = "/queryLog")
+    public Object queryLog(@RequestParam("taskId") Long taskId, @RequestParam("offsetLine") int offsetLine, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String taskHost = logService.getTaskHost(taskId);
+        Boolean isConcurrentHos = judgeConcurrentHost(request, taskHost);
+        if (isConcurrentHos) {
+            return logService.queryLog(taskId, offsetLine);
+        }
+        response.sendRedirect(request.getScheme() + "://" + taskHost + "/api/v1/task/log/queryLog?taskId=" + taskId);
+        return null;
+    }
+
+    @ApiOperation(value = "queryLogForLimit", notes = "query task log with limit")
+    @GetMapping(value = "/queryLogForLimit")
+    public Object queryLogForLimit(@RequestParam("taskId") Long taskId, @RequestParam("offsetLine") int offsetLine, @RequestParam("offsetLine") int limit, HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String taskHost = logService.getTaskHost(taskId);
+        Boolean isConcurrentHos = judgeConcurrentHost(request, taskHost);
+        if (isConcurrentHos) {
+            return logService.queryLog(taskId, offsetLine, limit);
+        }
+        response.sendRedirect(request.getScheme() + "://" + taskHost + "/api/v1/task/log/queryLogForLimit?taskId=" + taskId);
+        return null;
+    }
+
+    private Boolean judgeConcurrentHost(HttpServletRequest request, String taskHost) throws MalformedURLException {
+        URL url = new URL(request.getRequestURL().toString());
+        String host = url.getHost();
+        int port = url.getPort();
+        if(-1 != port){
+            host = host.concat(":").concat(String.valueOf(port));
+        }
+        return taskHost.equals(host);
     }
 }
