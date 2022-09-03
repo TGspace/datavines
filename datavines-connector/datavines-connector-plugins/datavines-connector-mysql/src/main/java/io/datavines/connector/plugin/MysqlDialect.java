@@ -14,13 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.connector.plugin;
 
 public class MysqlDialect extends JdbcDialect {
 
     @Override
     public String getDriver() {
-        return "com.mysql.jdbc.Driver";
+        return "com.mysql.cj.jdbc.Driver";
     }
 }

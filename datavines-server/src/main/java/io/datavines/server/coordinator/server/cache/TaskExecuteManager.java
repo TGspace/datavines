@@ -14,13 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.server.cache;
 
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.sift.SiftingAppender;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Appender;
 import io.datavines.common.CommonConstants;
 import io.datavines.common.config.Configurations;
 import io.datavines.common.config.DataVinesQualityConfig;
@@ -31,11 +28,19 @@ import io.datavines.common.enums.ExecutionStatus;
 import io.datavines.common.log.TaskLogDiscriminator;
 import io.datavines.common.utils.*;
 import io.datavines.engine.config.DataVinesConfigurationManager;
+import io.datavines.engine.core.utils.JsonUtils;
+import io.datavines.notification.api.entity.SlaConfigMessage;
+import io.datavines.notification.api.entity.SlaNotificationMessage;
+import io.datavines.notification.api.entity.SlaSenderMessage;
+import io.datavines.notification.core.client.NotificationClient;
 import io.datavines.server.command.CommandCode;
 import io.datavines.server.command.TaskExecuteAckCommand;
 import io.datavines.server.command.TaskExecuteResponseCommand;
 import io.datavines.common.exception.DataVinesException;
+import io.datavines.server.coordinator.repository.entity.DataSource;
+import io.datavines.server.coordinator.repository.entity.Job;
 import io.datavines.server.coordinator.repository.entity.Task;
+import io.datavines.server.coordinator.repository.service.*;
 import io.datavines.server.coordinator.repository.service.impl.JobExternalService;
 import io.datavines.server.coordinator.server.operator.DataQualityResultOperator;
 import io.datavines.server.executor.cache.TaskExecutionCache;
@@ -57,7 +62,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.*;
 
 public class TaskExecuteManager {
@@ -85,6 +92,12 @@ public class TaskExecuteManager {
 
     private final DataQualityResultOperator dataQualityResultOperator;
 
+    private final NotificationClient notificationClient;
+
+    private final DataSourceService dataSourceService;
+
+    private final SlaNotificationService slaNotificationService;
+
     public TaskExecuteManager(){
 
         this.executorService = Executors.newFixedThreadPool(5, new NamedThreadFactory("Server-thread"));
@@ -95,6 +108,9 @@ public class TaskExecuteManager {
         this.taskExecutionCache = TaskExecutionCache.getInstance();
         this.configurations = new Configurations(CommonPropertyUtils.getProperties());
         this.dataQualityResultOperator = SpringApplicationContext.getBean(DataQualityResultOperator.class);
+        this.notificationClient =  SpringApplicationContext.getBean(NotificationClient.class);
+        this.dataSourceService =  SpringApplicationContext.getBean(DataSourceService.class);
+        this.slaNotificationService = SpringApplicationContext.getBean(SlaNotificationService.class);
     }
 
     public void start() {
@@ -306,6 +322,7 @@ public class TaskExecuteManager {
                                     jobExternalService.deleteTaskResultByTaskId(taskRequest.getTaskId());
                                     jobExternalService.deleteActualValuesByTaskId(taskRequest.getTaskId());
                                 } else {
+                                    sendErrorEmail(task);
                                     updateTaskAndRemoveCache(taskRequest, task);
                                 }
                             } else if(ExecutionStatus.of(taskRequest.getStatus()).typeIsCancel()) {
@@ -323,6 +340,30 @@ public class TaskExecuteManager {
                 }
             }
         }
+    }
+
+    private void sendErrorEmail(Task task){
+        LinkedList<String> messageList = new LinkedList<>();
+
+        SlaNotificationMessage message = new SlaNotificationMessage();
+        Long jobId = task.getJobId();
+        JobService jobService = jobExternalService.getJobService();
+        Job job = jobService.getById(jobId);
+        String jobName = job.getName();
+        Long dataSourceId = job.getDataSourceId();
+        DataSource dataSource = dataSourceService.getDataSourceById(dataSourceId);
+        String dataSourceName = dataSource.getName();
+        String dataSourceType = dataSource.getType();
+        messageList.add(String.format("you has job %s on %s Datasource %s failure, please check detail", jobName, dataSourceType, dataSourceName));
+        message.setSubject(String.format("datavines job %s execute failure", jobName));
+        String jsonMessage = JsonUtils.toJsonString(messageList);
+        message.setMessage(jsonMessage);
+
+        Map<SlaSenderMessage, Set<SlaConfigMessage>> config = slaNotificationService.getSlasNotificationConfigurationByJobId(jobId);
+        if (config.isEmpty()){
+            return;
+        }
+        notificationClient.notify(message, config);
     }
 
     private void updateTaskAndRemoveCache(TaskRequest taskRequest, Task task) {
@@ -455,11 +496,14 @@ public class TaskExecuteManager {
         taskRequest.setExecutePlatformParameter(task.getExecutePlatformParameter());
         taskRequest.setEngineType(task.getEngineType());
         taskRequest.setEngineParameter(task.getEngineParameter());
+        taskRequest.setErrorDataStorageType(task.getErrorDataStorageType());
+        taskRequest.setErrorDataStorageParameter(task.getErrorDataStorageParameter());
         Map<String,String> inputParameter = new HashMap<>();
 
-        TaskInfo taskInfo = new TaskInfo(task.getId(),
-                task.getName(),task.getEngineType(),
-                task.getEngineParameter(),taskParameter);
+        TaskInfo taskInfo = new TaskInfo(task.getId(), task.getName(),
+                task.getEngineType(), task.getEngineParameter(),
+                task.getErrorDataStorageType(), task.getErrorDataStorageParameter(),task.getErrorDataFileName(),
+                taskParameter);
         DataVinesQualityConfig qualityConfig =
                 DataVinesConfigurationManager.generateConfiguration(inputParameter, taskInfo, DefaultDataSourceInfoUtils.getDefaultConnectionInfo());
 

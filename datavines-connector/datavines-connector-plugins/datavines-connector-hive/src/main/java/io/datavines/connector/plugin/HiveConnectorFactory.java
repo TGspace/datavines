@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.connector.plugin;
 
 import io.datavines.connector.api.Connector;
 import io.datavines.connector.api.ConnectorParameterConverter;
 import io.datavines.connector.api.Dialect;
+import io.datavines.connector.api.Executor;
 
-public class HiveConnectorFactory extends JdbcConnectorFactory {
+public class HiveConnectorFactory extends AbstractJdbcConnectorFactory {
 
     @Override
     public ConnectorParameterConverter getConnectorParameterConverter() {
@@ -36,5 +36,10 @@ public class HiveConnectorFactory extends JdbcConnectorFactory {
     @Override
     public Connector getConnector() {
         return new HiveConnector();
+    }
+
+    @Override
+    public Executor getExecutor() {
+        return new HiveExecutor();
     }
 }

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.utils;
 
 import java.io.IOException;
@@ -48,6 +47,9 @@ public class CommonPropertyUtils {
     public static final String TASK_LOCK_KEY = "registry.task.lock.key";
     public static final String TASK_LOCK_KEY_DEFAULT = "/datavines/taskLock";
 
+    public static final String SERVERS_KEY = "registry.servers.key";
+    public static final String SERVERS_KEY_DEFAULT = "/datavines/servers";
+
     public static final String REGISTRY_TYPE = "registry.type";
     public static final String REGISTRY_TYPE_DEFAULT = "default";
 
@@ -56,6 +58,12 @@ public class CommonPropertyUtils {
 
     public static final String LOCAL_TMP_WORKDIR = "local.tmp.workdir";
     public static final String LOCAL_TMP_WORKDIR_DEFAULT = "/tmp/datavines";
+
+    public static final String ERROR_DATA_FILE_DIR = "error.data.file_dir";
+    public static final String ERROR_DATA_FILE_DIR_DEFAULT = "/tmp/datavines/errordata";
+
+    public static final String AES_KEY = "aes.key";
+    public static final String AES_KEY_DEFAULT = "1234567890123456";
 
     private static final Logger logger = LoggerFactory.getLogger(CommonPropertyUtils.class);
 

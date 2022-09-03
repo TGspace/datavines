@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.config;
 
 import io.datavines.common.config.*;
@@ -23,11 +22,9 @@ import io.datavines.common.config.enums.TransformType;
 import io.datavines.common.entity.*;
 import io.datavines.common.exception.DataVinesException;
 import io.datavines.common.utils.StringUtils;
-import io.datavines.common.utils.placeholder.PlaceholderUtils;
 import io.datavines.connector.api.ConnectorFactory;
 import io.datavines.engine.config.BaseDataQualityConfigurationBuilder;
-import io.datavines.engine.config.ConfigConstants;
-import io.datavines.engine.config.DataQualityConfigurationBuilder;
+import io.datavines.engine.api.ConfigConstants;
 import io.datavines.engine.config.MetricParserUtils;
 import io.datavines.metric.api.ExpectedValue;
 import io.datavines.metric.api.SqlMetric;
@@ -38,7 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.datavines.engine.config.ConfigConstants.*;
+import static io.datavines.engine.api.ConfigConstants.*;
+import static io.datavines.engine.config.MetricParserUtils.generateUniqueCode;
 
 public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfigurationBuilder {
 
@@ -53,16 +51,16 @@ public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfig
     protected List<SourceConfig> getSourceConfigs() throws DataVinesException {
         List<SourceConfig> sourceConfigs = new ArrayList<>();
 
-        if (taskParameter.getSrcConnectorParameter() != null) {
-            ConnectorParameter srcConnectorParameter = taskParameter.getSrcConnectorParameter();
+        if (taskParameter.getConnectorParameter() != null) {
+            ConnectorParameter connectorParameter = taskParameter.getConnectorParameter();
             SourceConfig sourceConfig = new SourceConfig();
 
-            Map<String, Object> connectorParameterMap = new HashMap<>(srcConnectorParameter.getParameters());
+            Map<String, Object> connectorParameterMap = new HashMap<>(connectorParameter.getParameters());
             connectorParameterMap.putAll(inputParameter);
 
             ConnectorFactory connectorFactory = PluginLoader
                     .getPluginLoader(ConnectorFactory.class)
-                    .getNewPlugin(srcConnectorParameter.getType());
+                    .getNewPlugin(connectorParameter.getType());
 
             connectorParameterMap = connectorFactory.getConnectorParameterConverter().converter(connectorParameterMap);
 
@@ -71,6 +69,7 @@ public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfig
             connectorParameterMap.put(DRIVER, connectorFactory.getDialect().getDriver());
             inputParameter.put(REGEX_KEY, connectorFactory.getDialect().getRegexKey());
             inputParameter.put(NOT_REGEX_KEY, connectorFactory.getDialect().getNotRegexKey());
+            inputParameter.put(SRC_CONNECTOR_TYPE, connectorParameter.getType());
 
             sourceConfig.setPlugin(connectorFactory.getCategory());
             sourceConfig.setConfig(connectorParameterMap);
@@ -78,16 +77,16 @@ public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfig
             sourceConfigs.add(sourceConfig);
         }
 
-        if (taskParameter.getTargetConnectorParameter() != null && taskParameter.getTargetConnectorParameter().getParameters() !=null) {
-            ConnectorParameter targetConnectorParameter = taskParameter.getTargetConnectorParameter();
+        if (taskParameter.getConnectorParameter2() != null && taskParameter.getConnectorParameter2().getParameters() !=null) {
+            ConnectorParameter connectorParameter2 = taskParameter.getConnectorParameter2();
             SourceConfig sourceConfig = new SourceConfig();
 
-            Map<String, Object> connectorParameterMap = new HashMap<>(targetConnectorParameter.getParameters());
+            Map<String, Object> connectorParameterMap = new HashMap<>(connectorParameter2.getParameters());
             connectorParameterMap.putAll(inputParameter);
 
             ConnectorFactory connectorFactory = PluginLoader
                     .getPluginLoader(ConnectorFactory.class)
-                    .getNewPlugin(targetConnectorParameter.getType());
+                    .getNewPlugin(connectorParameter2.getType());
 
             connectorParameterMap = connectorFactory.getConnectorParameterConverter().converter(connectorParameterMap);
 
@@ -101,7 +100,7 @@ public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfig
             sourceConfigs.add(sourceConfig);
         }
 
-        String expectedType = taskParameter.getExpectedType();
+        String expectedType = taskInfo.getEngineType() + "_" + taskParameter.getExpectedType();
         if (StringUtils.isEmpty(expectedType)) {
             return sourceConfigs;
         }
@@ -137,13 +136,16 @@ public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfig
                 inputParameter, transformConfigs,
                 sqlMetric.getInvalidateItems(), TransformType.INVALIDATE_ITEMS.getDescription());
 
-        MetricParserUtils.setTransformerConfig(inputParameter, transformConfigs,
-                sqlMetric.getActualValue(), TransformType.ACTUAL_VALUE.getDescription());
+        MetricParserUtils.setTransformerConfig(
+                inputParameter,
+                transformConfigs,
+                sqlMetric.getActualValue(),
+                TransformType.ACTUAL_VALUE.getDescription());
 
         inputParameter.put(ACTUAL_TABLE, sqlMetric.getActualValue().getResultTable());
 
         // get expected value transform sql
-        String expectedType = taskParameter.getExpectedType();
+        String expectedType = taskInfo.getEngineType() + "_" + taskParameter.getExpectedType();
         expectedValue = PluginLoader
                 .getPluginLoader(ExpectedValue.class)
                 .getNewPlugin(expectedType);
@@ -154,6 +156,8 @@ public abstract class BaseJdbcConfigurationBuilder extends BaseDataQualityConfig
         if (StringUtils.isNotEmpty(expectedValueExecuteSql.getResultTable())) {
             inputParameter.put(EXPECTED_TABLE, expectedValueExecuteSql.getResultTable());
         }
+
+        inputParameter.put(UNIQUE_CODE, StringUtils.wrapperSingleQuotes(generateUniqueCode(inputParameter)));
 
         if (expectedValue.isNeedDefaultDatasource()) {
             MetricParserUtils.setTransformerConfig(inputParameter, transformConfigs,

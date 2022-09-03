@@ -14,27 +14,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.repository.service;
 
 import java.util.List;
 
-import io.datavines.common.exception.DataVinesException;
-import io.datavines.common.dto.task.SubmitTask;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.datavines.server.coordinator.api.dto.bo.task.SubmitTask;
+import io.datavines.server.coordinator.api.dto.vo.TaskVO;
 import io.datavines.server.coordinator.repository.entity.Task;
-import io.datavines.server.exception.DataVinesServerException;
+import io.datavines.core.exception.DataVinesServerException;
 
 public interface TaskService {
 
-    long insert(Task task);
+    long create(Task task);
 
     int update(Task task);
 
     Task getById(long id);
 
-    List<Task> listByDataSourceId(long dataSourceId);
+    List<Task> listByJobId(long jobId);
+
+    int deleteByJobId(long jobId);
+
+    IPage<TaskVO> getTaskPage(String searchVal, Long jobId, Integer pageNumber, Integer pageSize);
 
     Long submitTask(SubmitTask submitTask) throws DataVinesServerException;
+
+    Long executeTask(Task task) throws DataVinesServerException;
 
     Long killTask(Long taskId);
 
@@ -42,4 +48,7 @@ public interface TaskService {
 
     List<Task> listTaskNotInServerList(List<String> hostList);
 
+    Object readErrorDataPage(Long taskId, Integer pageNumber, Integer pageSize);
+
+    String getTaskExecuteHost(Long taskId);
 }

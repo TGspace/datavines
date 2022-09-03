@@ -14,26 +14,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.config;
 
 import io.datavines.common.config.SinkConfig;
 import io.datavines.common.config.enums.SinkType;
 import io.datavines.common.exception.DataVinesException;
+import io.datavines.common.utils.JSONUtils;
 import io.datavines.common.utils.StringUtils;
+import io.datavines.spi.PluginLoader;
+import io.datavines.storage.api.StorageFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static io.datavines.engine.config.ConfigConstants.UNIQUE_CODE;
-import static io.datavines.engine.config.MetricParserUtils.generateUniqueCode;
+import static io.datavines.engine.api.ConfigConstants.*;
 
 public class JdbcSingleTableMetricBuilder extends BaseJdbcConfigurationBuilder {
 
     @Override
     public void buildSinkConfigs() throws DataVinesException {
 
-        inputParameter.put(UNIQUE_CODE, StringUtils.wrapperSingleQuotes(generateUniqueCode(inputParameter)));
         List<SinkConfig> sinkConfigs = new ArrayList<>();
         //get the actual value storage parameter
         SinkConfig actualValueSinkConfig = getDefaultSinkConfig(SinkSqlBuilder.getActualValueSql(), "dv_actual_values");
@@ -46,9 +48,31 @@ public class JdbcSingleTableMetricBuilder extends BaseJdbcConfigurationBuilder {
         sinkConfigs.add(taskResultSinkConfig);
 
         //get the error data storage parameter
-        //support file(hdfs/minio/s3)/es
+        if (StringUtils.isNotEmpty(taskInfo.getErrorDataStorageType())
+                &&StringUtils.isNotEmpty(taskInfo.getErrorDataStorageParameter())) {
+            SinkConfig errorDataSinkConfig = new SinkConfig();
+            errorDataSinkConfig.setType(SinkType.ERROR_DATA.getDescription());
+
+            Map<String, Object> connectorParameterMap = new HashMap<>(JSONUtils.toMap(taskInfo.getErrorDataStorageParameter(),String.class, Object.class));
+            connectorParameterMap.putAll(inputParameter);
+            StorageFactory storageFactory = PluginLoader
+                    .getPluginLoader(StorageFactory.class)
+                    .getNewPlugin(taskInfo.getErrorDataStorageType());
+
+            if (storageFactory != null) {
+                connectorParameterMap = storageFactory.getStorageConnector().getParamMap(connectorParameterMap);
+                errorDataSinkConfig.setPlugin(storageFactory.getCategory());
+                connectorParameterMap.put(ERROR_DATA_FILE_NAME, taskInfo.getErrorDataFileName());
+                connectorParameterMap.put(ERROR_DATA_FILE_DIR, inputParameter.get(ERROR_DATA_FILE_DIR));
+                connectorParameterMap.put(METRIC_NAME, inputParameter.get(METRIC_NAME));
+                connectorParameterMap.put(SRC_CONNECTOR_TYPE, inputParameter.get(SRC_CONNECTOR_TYPE));
+                connectorParameterMap.put(TASK_ID, inputParameter.get(TASK_ID));
+                errorDataSinkConfig.setConfig(connectorParameterMap);
+
+                sinkConfigs.add(errorDataSinkConfig);
+            }
+        }
 
         configuration.setSinkParameters(sinkConfigs);
     }
-
 }

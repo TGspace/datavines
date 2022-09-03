@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.result.formula;
 
 import io.datavines.metric.api.ResultFormula;
@@ -22,7 +21,27 @@ import io.datavines.metric.api.ResultFormula;
 public class Count implements ResultFormula {
 
     @Override
+    public String getName() {
+        return "Actual";
+    }
+
+    @Override
+    public String getZhName() {
+        return "实际值";
+    }
+
+    @Override
     public double getResult(double actualValue, double expectedValue) {
         return actualValue;
+    }
+
+    @Override
+    public String getResultFormat(boolean isEn) {
+        return isEn ? "Actual(${actual_value})" : "实际值(${actual_value})";
+    }
+
+    @Override
+    public String getSymbol() {
+        return "#";
     }
 }

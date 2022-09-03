@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.registry.plugin;
 
 import com.zaxxer.hikari.HikariDataSource;
@@ -32,7 +31,7 @@ public class ConnectionUtils {
     private static final Logger logger = LoggerFactory.getLogger(ConnectionUtils.class);
 
     public static Connection getConnection(Properties properties) {
-        String className = "com.mysql.jdbc.Driver";
+        String className = "com.mysql.cj.jdbc.Driver";
         String url = properties.getProperty("url");
         String username = properties.getProperty("username");
         String password = properties.getProperty("password");

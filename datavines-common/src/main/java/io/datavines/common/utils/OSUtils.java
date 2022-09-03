@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
@@ -415,6 +414,11 @@ public class OSUtils {
     } else {
       return true;
     }
+  }
+
+  public static Boolean judgeConcurrentHost(String taskHost) {
+    String host = NetUtils.getAddr(CommonPropertyUtils.getInt(CommonPropertyUtils.SERVER_PORT, CommonPropertyUtils.SERVER_PORT_DEFAULT));
+    return taskHost.equals(host);
   }
 
 }

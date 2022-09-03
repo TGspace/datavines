@@ -14,11 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.connector.plugin;
 
-import io.datavines.connector.plugin.datasource.BaseDataSourceInfo;
-import io.datavines.connector.plugin.datasource.ConnectionInfo;
+import io.datavines.common.jdbc.datasource.BaseDataSourceInfo;
+import io.datavines.common.jdbc.datasource.ConnectionInfo;
 
 public class ClickHouseDataSourceInfo extends BaseDataSourceInfo {
 

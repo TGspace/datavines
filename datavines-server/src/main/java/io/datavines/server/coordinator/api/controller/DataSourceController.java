@@ -14,18 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.api.controller;
 
-import io.datavines.common.exception.DataVinesException;
+import io.datavines.connector.api.ConnectorFactory;
+import io.datavines.server.coordinator.api.dto.vo.Item;
 import io.datavines.common.param.TestConnectionRequestParam;
-import io.datavines.server.DataVinesConstants;
-import io.datavines.common.dto.datasource.DataSourceCreate;
-import io.datavines.common.dto.datasource.DataSourceUpdate;
-import io.datavines.server.coordinator.api.aop.RefreshToken;
-import io.datavines.server.coordinator.api.entity.ResultMap;
+import io.datavines.core.constant.DataVinesConstants;
+import io.datavines.core.aop.RefreshToken;
+import io.datavines.server.coordinator.api.dto.bo.datasource.DataSourceCreate;
+import io.datavines.server.coordinator.api.dto.bo.datasource.DataSourceUpdate;
+import io.datavines.server.coordinator.api.dto.bo.datasource.ExecuteRequest;
 import io.datavines.server.coordinator.repository.service.DataSourceService;
-
+import io.datavines.spi.PluginLoader;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -33,8 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 @Api(value = "datasource", tags = "datasource", produces = MediaType.APPLICATION_JSON_VALUE)
 @RestController
@@ -59,7 +60,7 @@ public class DataSourceController {
 
     @ApiOperation(value = "update datasource")
     @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
-    public Object updateDataSource(@RequestBody DataSourceUpdate dataSourceUpdate) throws DataVinesException {
+    public Object updateDataSource(@RequestBody DataSourceUpdate dataSourceUpdate) {
         return dataSourceService.update(dataSourceUpdate)>0;
     }
 
@@ -69,27 +70,56 @@ public class DataSourceController {
         return dataSourceService.delete(id);
     }
 
-    @ApiOperation(value = "list datasource by workspace id")
-    @GetMapping(value = "list/{id}")
-    public Object listByWorkSpaceId(@PathVariable Long id)  {
-        return dataSourceService.listByWorkSpaceId(id);
+    @ApiOperation(value = "get datasource page")
+    @GetMapping(value = "/page")
+    public Object page(@RequestParam(value = "searchVal", required = false) String searchVal,
+                       @RequestParam("workSpaceId") Long workSpaceId,
+                       @RequestParam("pageNumber") Integer pageNumber,
+                       @RequestParam("pageSize") Integer pageSize)  {
+        return dataSourceService.getDataSourcePage(searchVal, workSpaceId, pageNumber, pageSize);
     }
 
     @ApiOperation(value = "get databases")
     @GetMapping(value = "/{id}/databases")
-    public Object getDatabaseList(@PathVariable Long id)  {
+    public Object getDatabaseList(@PathVariable Long id) {
         return dataSourceService.getDatabaseList(id);
     }
 
     @ApiOperation(value = "get tables")
     @GetMapping(value = "/{id}/{database}/tables")
-    public Object getTableList(@PathVariable Long id, @PathVariable String database)  {
+    public Object getTableList(@PathVariable Long id, @PathVariable String database) {
         return dataSourceService.getTableList(id, database);
     }
 
     @ApiOperation(value = "get columns")
     @GetMapping(value = "/{id}/{database}/{table}/columns")
-    public Object getColumnList(@PathVariable Long id, @PathVariable String database, @PathVariable String table)  {
+    public Object getColumnList(@PathVariable Long id, @PathVariable String database, @PathVariable String table) {
         return dataSourceService.getColumnList(id, database, table);
     }
+
+    @ApiOperation(value = "execute script")
+    @PostMapping(value = "/execute", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Object execute(@RequestBody ExecuteRequest param)  {
+        return dataSourceService.executeScript(param);
+    }
+
+    @ApiOperation(value = "get config json")
+    @GetMapping(value = "/config/{type}")
+    public Object getConfigJson(@PathVariable String type){
+        return dataSourceService.getConfigJson(type);
+    }
+
+    @ApiOperation(value = "get connector type list")
+    @GetMapping(value = "/type/list")
+    public Object getConnectorTypeList() {
+        Set<String> connectorList = PluginLoader.getPluginLoader(ConnectorFactory.class).getSupportedPlugins();
+        List<Item> items = new ArrayList<>();
+        connectorList.forEach(it -> {
+            Item item = new Item(it,it);
+            items.add(item);
+        });
+
+        return items;
+    }
+
 }

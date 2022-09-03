@@ -14,17 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.spark.config;
 
 import io.datavines.common.config.SinkConfig;
 import io.datavines.common.exception.DataVinesException;
 import io.datavines.common.utils.StringUtils;
-import io.datavines.metric.api.MetricConstants;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.datavines.engine.config.ConfigConstants.UNIQUE_CODE;
+import static io.datavines.engine.api.ConfigConstants.UNIQUE_CODE;
 import static io.datavines.engine.config.MetricParserUtils.generateUniqueCode;
 
 public class SparkSingleTableMetricBuilder extends BaseSparkConfigurationBuilder {

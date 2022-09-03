@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.spark.config;
 
 import io.datavines.common.utils.StringUtils;
@@ -31,23 +30,24 @@ public class SparkSinkSqlBuilder {
         List<String> columnList = new ArrayList<>();
         for (ColumnInfo columnInfo : MetricConstants.ACTUAL_COLUMN_LIST) {
             if (columnInfo.isNeedSingleQuotation()) {
-                columnList.add(StringUtils.wrapperSingleQuotes("${"+columnInfo.getName()+"}") + " as " + columnInfo.getName());
+                columnList.add(StringUtils.wrapperSingleQuotes("${"+columnInfo.getParameterName()+"}") + " as " + columnInfo.getName());
             } else {
-                columnList.add("${"+columnInfo.getName()+"}" + " as " + columnInfo.getName());
+                columnList.add("${"+columnInfo.getParameterName()+"}" + " as " + columnInfo.getName());
             }
 
         }
 
-        return "select " + String.join(", ", columnList) + "from ${actual_table}";
+        return "select " + String.join(", ", columnList) + " from ${actual_table}";
     }
 
     private static String getBasicSql() {
         List<String> columnList = new ArrayList<>();
         for (ColumnInfo columnInfo : MetricConstants.RESULT_COLUMN_LIST) {
+
             if (columnInfo.isNeedSingleQuotation()) {
-                columnList.add(StringUtils.wrapperSingleQuotes("${"+columnInfo.getName()+"}") + " as " + columnInfo.getName());
+                columnList.add(StringUtils.wrapperSingleQuotes("${"+columnInfo.getParameterName()+"}") + " as " + columnInfo.getName());
             } else {
-                columnList.add("${"+columnInfo.getName()+"}" + " as " + columnInfo.getName());
+                columnList.add("${"+columnInfo.getParameterName()+"}" + " as " + columnInfo.getName());
             }
 
         }
@@ -56,18 +56,18 @@ public class SparkSinkSqlBuilder {
     }
 
     public static String getDefaultSinkSql() {
-        return getBasicSql() + "from ${actual_table} full join ${expected_table}";
+        return getBasicSql() + " from ${actual_table} full join ${expected_table}";
     }
 
     public static String getMultiTableComparisonSinkSql() {
         return getBasicSql()
-                + "from ( ${actual_execute_sql} ) tmp1 "
+                + " from ( ${actual_execute_sql} ) tmp1 "
                 + "join ( ${expected_execute_sql} ) tmp2";
     }
 
     public static String getSingleTableCustomSqlSinkSql() {
         return getBasicSql()
-                + "from ( ${actual_table} ) tmp1 "
+                + " from ( ${actual_table} ) tmp1 "
                 + "join ${expected_table}";
     }
 }

@@ -14,29 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.api.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import io.datavines.common.exception.DataVinesException;
-import io.datavines.server.coordinator.api.aop.RefreshToken;
-import io.datavines.server.coordinator.api.entity.ResultMap;
+import io.datavines.core.aop.RefreshToken;
 import io.datavines.server.coordinator.repository.service.TaskResultService;
-import io.datavines.server.exception.DataVinesServerException;
+import io.datavines.core.exception.DataVinesServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import io.datavines.server.DataVinesConstants;
-
-import io.datavines.common.dto.task.SubmitTask;
+import io.datavines.core.constant.DataVinesConstants;
+import io.datavines.server.coordinator.api.dto.bo.task.SubmitTask;
 import io.datavines.server.coordinator.repository.service.TaskService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+
+import static io.datavines.common.utils.OSUtils.judgeConcurrentHost;
 
 @Api(value = "task", tags = "task", produces = MediaType.APPLICATION_JSON_VALUE)
 @RestController
@@ -68,9 +66,41 @@ public class TaskController {
         return taskService.getById(taskId).getStatus().getDescription();
     }
 
+    @ApiOperation(value = "get task list by job id")
+    @GetMapping(value = "/list/{jobId}")
+    public Object getTaskListByJobId(@PathVariable("jobId") Long jobId) {
+        return taskService.listByJobId(jobId);
+    }
+
     @ApiOperation(value = "get task result")
-    @GetMapping(value = "result/{id}")
-    public Object getTaskResultInfo(@PathVariable("id") Long taskId) {
-        return taskResultService.getByTaskId(taskId);
+    @GetMapping(value = "/result/{taskId}")
+    public Object getTaskResultInfo(@PathVariable("taskId") Long taskId) {
+        return taskResultService.getResultVOByTaskId(taskId);
+    }
+
+    @ApiOperation(value = "get task page")
+    @GetMapping(value = "/page")
+    public Object page(@RequestParam(value = "searchVal", required = false) String searchVal,
+                       @RequestParam("jobId") Long jobId,
+                       @RequestParam("pageNumber") Integer pageNumber,
+                       @RequestParam("pageSize") Integer pageSize)  {
+        return taskService.getTaskPage(searchVal, jobId, pageNumber, pageSize);
+    }
+
+    @ApiOperation(value = "get task error data page")
+    @GetMapping(value = "/errorDataPage")
+    public Object readErrorDataPage(@RequestParam("taskId") Long taskId,
+                                    @RequestParam("pageNumber") Integer pageNumber,
+                                    @RequestParam("pageSize") Integer pageSize,
+                                    HttpServletRequest request, HttpServletResponse response) throws IOException {
+
+        String taskHost = taskService.getTaskExecuteHost(taskId);
+        Boolean isConcurrentHost = judgeConcurrentHost(taskHost);
+        if (isConcurrentHost) {
+            return taskService.readErrorDataPage(taskId, pageNumber, pageSize);
+        }
+        response.sendRedirect(request.getScheme() + "://" + taskHost + "/api/v1/task/errorDataPage?taskId=" + taskId +
+                "&pageNumber=" + pageNumber + "&pageSize="+pageSize);
+        return null;
     }
 }

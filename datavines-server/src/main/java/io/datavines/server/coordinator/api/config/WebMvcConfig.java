@@ -14,24 +14,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.api.config;
 
-import io.datavines.server.DataVinesConstants;
+import io.datavines.core.constant.DataVinesConstants;
 import io.datavines.server.coordinator.api.inteceptor.AuthenticationInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 
 import java.util.Collections;
+import java.util.Locale;
+
+import static io.datavines.core.constant.DataVinesConstants.LOCALE_LANGUAGE_COOKIE;
 
 @Configuration
-public class WebMvcConfig extends WebMvcConfigurationSupport {
+public class WebMvcConfig implements WebMvcConfigurer {
 
     @Bean
     public AuthenticationInterceptor loginRequiredInterceptor() {
@@ -39,12 +41,10 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
     }
 
     @Override
-    protected void addInterceptors(InterceptorRegistry registry) {
+    public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(loginRequiredInterceptor())
                 .addPathPatterns(DataVinesConstants.BASE_API_PATH + "/**")
                 .excludePathPatterns(DataVinesConstants.BASE_API_PATH + "/login");
-
-        super.addInterceptors(registry);
     }
 
     @Override
@@ -53,7 +53,29 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
         registry.addResourceHandler("/**")
                 .addResourceLocations("classpath:/META-INF/resources/")
                 .addResourceLocations("classpath:/static/")
-                .addResourceLocations("classpath:/static/templates/");
+                .addResourceLocations("classpath:/static/templates")
+                .addResourceLocations("classpath:/public/")
+                ;
+    }
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/").setViewName("index.html");
+    }
+
+    /**
+     * Cookie
+     * @return local resolver
+     */
+    @Bean(name = "localeResolver")
+    public LocaleResolver localeResolver() {
+        CookieLocaleResolver localeResolver = new CookieLocaleResolver();
+        localeResolver.setCookieName(LOCALE_LANGUAGE_COOKIE);
+        // set default locale
+        localeResolver.setDefaultLocale(Locale.CHINA);
+        // set language tag compliant
+        localeResolver.setLanguageTagCompliant(false);
+        return localeResolver;
     }
 
     @Bean
@@ -65,9 +87,8 @@ public class WebMvcConfig extends WebMvcConfigurationSupport {
 
     private CorsConfiguration addCorsConfig() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOrigins(Collections.singletonList("*"));
+        corsConfiguration.setAllowedOriginPatterns(Collections.singletonList("*"));
         corsConfiguration.addAllowedHeader("*");
-        corsConfiguration.addAllowedOrigin("*");
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.setAllowCredentials(true);
         return corsConfiguration;

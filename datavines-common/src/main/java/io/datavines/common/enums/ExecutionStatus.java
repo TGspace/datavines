@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.enums;
 
 import java.util.HashMap;
@@ -42,7 +41,7 @@ public enum ExecutionStatus {
      * 10 waiting thread
      * 11 waiting depend node complete
      */
-    SUBMITTED_SUCCESS(0, "submit success"),
+    SUBMITTED_SUCCESS(0, "submitted"),
     RUNNING_EXECUTION(1, "running"),
     READY_PAUSE(2, "ready pause"),
     PAUSE(3, "pause"),

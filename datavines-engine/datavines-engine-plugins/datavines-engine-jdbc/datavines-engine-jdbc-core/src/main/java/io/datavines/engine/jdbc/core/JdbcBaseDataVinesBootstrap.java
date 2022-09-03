@@ -14,10 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.core;
 
 import io.datavines.engine.core.BaseDataVinesBootstrap;
+import io.datavines.engine.jdbc.api.utils.LoggerFactory;
+import org.slf4j.Logger;
 
 public class JdbcBaseDataVinesBootstrap extends BaseDataVinesBootstrap {
+
+    public JdbcBaseDataVinesBootstrap(Logger logger) {
+        LoggerFactory.setLogger(logger);
+    }
 }

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.connector;
 
 import io.datavines.common.config.CheckResult;
@@ -22,10 +21,10 @@ import io.datavines.common.config.Config;
 import io.datavines.engine.api.env.RuntimeEnvironment;
 import io.datavines.engine.jdbc.api.JdbcRuntimeEnvironment;
 import io.datavines.engine.jdbc.api.JdbcSource;
+import io.datavines.engine.jdbc.api.entity.ConnectionItem;
+import io.datavines.engine.jdbc.api.utils.LoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 
 public class BaseJdbcSource implements JdbcSource {
 
-    private static final Logger logger = LoggerFactory.getLogger(BaseJdbcSource.class);
+    private Logger logger = LoggerFactory.getLogger(BaseJdbcSource.class);
 
     private Config config = new Config();
 
@@ -76,8 +75,8 @@ public class BaseJdbcSource implements JdbcSource {
     }
 
     @Override
-    public Connection getConnection(JdbcRuntimeEnvironment env) {
-        return ConnectionUtils.getConnection(config);
+    public ConnectionItem getConnectionItem(JdbcRuntimeEnvironment env) {
+        return new ConnectionItem(config);
     }
 
 }

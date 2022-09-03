@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.config;
 
 import java.util.HashMap;
@@ -82,5 +81,9 @@ public class Config {
 
     public void merge(Map<String,Object> config) {
         config.forEach(this.config::putIfAbsent);
+    }
+
+    public Object remove(String key) {
+        return config.remove(key);
     }
 }

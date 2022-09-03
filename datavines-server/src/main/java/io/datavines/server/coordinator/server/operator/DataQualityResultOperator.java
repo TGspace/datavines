@@ -14,14 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.server.operator;
 
 import io.datavines.common.entity.TaskRequest;
+import io.datavines.engine.core.utils.JsonUtils;
 import io.datavines.metric.api.ResultFormula;
+import io.datavines.notification.api.entity.SlaConfigMessage;
+import io.datavines.notification.api.entity.SlaNotificationMessage;
+import io.datavines.notification.api.entity.SlaSenderMessage;
+import io.datavines.notification.core.client.NotificationClient;
+import io.datavines.server.coordinator.api.dto.vo.TaskResultVO;
+import io.datavines.server.coordinator.repository.entity.Task;
 import io.datavines.server.coordinator.repository.entity.TaskResult;
+import io.datavines.server.coordinator.repository.service.SlaNotificationService;
+import io.datavines.server.coordinator.repository.service.TaskResultService;
+import io.datavines.server.coordinator.repository.service.TaskService;
 import io.datavines.server.coordinator.repository.service.impl.JobExternalService;
-import io.datavines.server.enums.DqFailureStrategy;
 import io.datavines.server.enums.DqTaskState;
 import io.datavines.server.enums.OperatorType;
 import io.datavines.spi.PluginLoader;
@@ -31,6 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * DataQualityResultOperator
@@ -42,6 +53,19 @@ public class DataQualityResultOperator {
 
     @Autowired
     private JobExternalService jobExternalService;
+
+    @Autowired
+    private NotificationClient notificationClient;
+
+    @Autowired
+    private TaskResultService taskResultService;
+
+    @Autowired
+    private TaskService taskService;
+
+    @Autowired
+    private SlaNotificationService slaNotificationService;
+
 
     /**
      * When the task type is data quality, it will get the statistics value、comparison value、
@@ -55,38 +79,49 @@ public class DataQualityResultOperator {
                 jobExternalService.getTaskResultByTaskId(taskRequest.getTaskId());
         if (taskResult != null) {
             //check the result ,if result is failure do some operator by failure strategy
-            checkDqExecuteResult(taskRequest, taskResult);
+            checkDqExecuteResult(taskResult);
         }
     }
 
     /**
      * get the data quality check result
      * and if the result is failure that will alert or block
-     * @param taskRequest taskRequest
      * @param taskResult taskResult
      */
-    private void checkDqExecuteResult(TaskRequest taskRequest,
-                                      TaskResult taskResult) {
+    private void checkDqExecuteResult(TaskResult taskResult) {
         if (isFailure(taskResult)) {
-            DqFailureStrategy dqFailureStrategy = DqFailureStrategy.of(taskResult.getFailureStrategy());
-            if (dqFailureStrategy != null) {
-                taskResult.setState(DqTaskState.FAILURE.getDescription());
-                switch (dqFailureStrategy) {
-                    case NONE:
-                        logger.info("task is failure, do nothing");
-                        break;
-                    case ALERT:
-                        logger.info("task is failure, continue and alert");
-                        break;
-                    default:
-                        break;
-                }
-            }
+            taskResult.setState(DqTaskState.FAILURE.getCode());
+            Long taskId = taskResult.getTaskId();
+            sendErrorEmail(taskId);
         } else {
-            taskResult.setState(DqTaskState.SUCCESS.getDescription());
+            taskResult.setState(DqTaskState.SUCCESS.getCode());
         }
 
         jobExternalService.updateTaskResult(taskResult);
+    }
+
+
+    private void sendErrorEmail(Long taskId){
+        TaskResultVO resultVO = taskResultService.getResultVOByTaskId(taskId);
+        LinkedList<String> messageList = new LinkedList<>();
+        messageList.add(resultVO.getMetricName());
+        messageList.add(resultVO.getCheckSubject());
+        messageList.add(resultVO.getCheckResult());
+        messageList.add(resultVO.getExpectedType());
+        messageList.add(resultVO.getResultFormulaFormat());
+        String jsonMessage = JsonUtils.toJsonString(messageList);
+        SlaNotificationMessage message = new SlaNotificationMessage();
+        message.setMessage(jsonMessage);
+        message.setSubject(String.format("datavines metric %s failure", resultVO.getMetricName()));
+        Task task = taskService.getById(taskId);
+        Long jobId = task.getJobId();
+
+
+        Map<SlaSenderMessage, Set<SlaConfigMessage>> config = slaNotificationService.getSlasNotificationConfigurationByJobId(jobId);
+        if (config.isEmpty()){
+            return;
+        }
+        notificationClient.notify(message, config);
     }
 
     /**
@@ -96,9 +131,14 @@ public class DataQualityResultOperator {
      */
     private boolean isFailure(TaskResult taskResult) {
 
-        double actualValue = taskResult.getActualValue();
-        double expectedValue = taskResult.getExpectedValue();
-        double threshold = taskResult.getThreshold();
+        Double actualValue = taskResult.getActualValue();
+        Double expectedValue = null;
+        if (taskResult.getExpectedValue() == null) {
+            expectedValue = taskResult.getActualValue();
+        } else {
+            expectedValue = taskResult.getExpectedValue();
+        }
+        Double threshold = taskResult.getThreshold();
 
         OperatorType operatorType = OperatorType.of(taskResult.getOperator());
 
@@ -107,7 +147,7 @@ public class DataQualityResultOperator {
         return getCompareResult(operatorType, resultFormula.getResult(actualValue, expectedValue), threshold);
     }
 
-    private boolean getCompareResult(OperatorType operatorType, double srcValue, double targetValue) {
+    private boolean getCompareResult(OperatorType operatorType, Double srcValue, Double targetValue) {
         BigDecimal src = BigDecimal.valueOf(srcValue);
         BigDecimal target = BigDecimal.valueOf(targetValue);
         switch (operatorType) {

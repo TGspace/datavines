@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
@@ -45,8 +44,9 @@ public enum CommandType {
     }
 
     @EnumValue
-    int code;
-    String description;
+    private int code;
+
+    private String description;
 
     private static final Map<Integer, CommandType> COMMAND_TYPE_MAP = new HashMap<>();
 

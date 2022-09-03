@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.api;
 
 public class EngineConstants {
@@ -28,4 +27,6 @@ public class EngineConstants {
     public static final String PID = "pid";
 
     public static final String PLUGIN_TYPE = "plugin_type";
+
+    public static final String TYPE = "type";
 }

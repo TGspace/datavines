@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.repository.service.impl;
 
 import java.time.LocalDateTime;
@@ -24,17 +23,27 @@ import java.util.Map;
 import java.util.Set;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.datavines.common.config.CheckResult;
 import io.datavines.common.entity.ConnectorParameter;
 import io.datavines.common.entity.TaskParameter;
 import io.datavines.common.exception.DataVinesException;
+import io.datavines.common.param.ExecuteRequestParam;
 import io.datavines.connector.api.ConnectorFactory;
+import io.datavines.core.enums.ApiStatus;
 import io.datavines.engine.config.DataQualityConfigurationBuilder;
 import io.datavines.metric.api.ExpectedValue;
 import io.datavines.metric.api.ResultFormula;
 import io.datavines.metric.api.SqlMetric;
-import io.datavines.server.exception.DataVinesServerException;
+import io.datavines.server.coordinator.api.dto.vo.TaskVO;
+import io.datavines.core.exception.DataVinesServerException;
+import io.datavines.server.coordinator.repository.service.ActualValuesService;
+import io.datavines.server.coordinator.repository.service.TaskResultService;
 import io.datavines.spi.PluginLoader;
+import io.datavines.storage.api.StorageFactory;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,7 +52,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import io.datavines.common.enums.ExecutionStatus;
 import io.datavines.common.utils.JSONUtils;
-import io.datavines.common.dto.task.SubmitTask;
+import io.datavines.server.coordinator.api.dto.bo.task.SubmitTask;
 import io.datavines.server.enums.CommandType;
 import io.datavines.server.enums.Priority;
 import io.datavines.server.coordinator.repository.entity.Command;
@@ -51,9 +60,10 @@ import io.datavines.server.coordinator.repository.mapper.CommandMapper;
 import io.datavines.server.coordinator.repository.mapper.TaskMapper;
 import io.datavines.server.coordinator.repository.service.TaskService;
 import io.datavines.server.coordinator.repository.entity.Task;
+import org.springframework.transaction.annotation.Transactional;
 
-import static io.datavines.server.DataVinesConstants.JDBC;
-import static io.datavines.server.DataVinesConstants.SPARK;
+import static io.datavines.core.constant.DataVinesConstants.JDBC;
+import static io.datavines.core.constant.DataVinesConstants.SPARK;
 
 @Service("taskService")
 public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements TaskService {
@@ -61,8 +71,14 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements T
     @Autowired
     private CommandMapper commandMapper;
 
+    @Autowired
+    private TaskResultService taskResultService;
+
+    @Autowired
+    private ActualValuesService actualValuesService;
+
     @Override
-    public long insert(Task task) {
+    public long create(Task task) {
         baseMapper.insert(task);
         return task.getId();
     }
@@ -78,14 +94,39 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements T
     }
 
     @Override
-    public List<Task> listByDataSourceId(long dataSourceId) {
-        return baseMapper.listByDataSourceId(dataSourceId);
+    public List<Task> listByJobId(long jobId) {
+        return baseMapper.listByJobId(jobId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public int deleteByJobId(long jobId) {
+        List<Task> taskList = listByJobId(jobId);
+        if (CollectionUtils.isEmpty(taskList)) {
+            return 0;
+        }
+
+        taskList.forEach(task -> {
+            baseMapper.deleteById(task.getId());
+            taskResultService.deleteByTaskId(task.getId());
+            actualValuesService.deleteByTaskId(task.getId());
+            //删除错误数据存储
+        });
+
+        return 0;
+    }
+
+    @Override
+    public IPage<TaskVO> getTaskPage(String searchVal, Long jobId, Integer pageNumber, Integer pageSize) {
+        Page<TaskVO> page = new Page<>(pageNumber, pageSize);
+        IPage<TaskVO> jobs = baseMapper.getTaskPage(page, searchVal, jobId);
+        return jobs;
     }
 
     @Override
     public Long submitTask(SubmitTask submitTask) throws DataVinesServerException {
 
-        checkTaskParameter(submitTask);
+        checkTaskParameter(submitTask.getParameter(), submitTask.getEngineType());
 
         Task task = new Task();
         BeanUtils.copyProperties(submitTask,task);
@@ -114,7 +155,13 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements T
 
         task.setSubmitTime(LocalDateTime.now());
         task.setStatus(ExecutionStatus.SUBMITTED_SUCCESS);
-        Long taskId = insert(task);
+
+        return executeTask(task);
+    }
+
+    @Override
+    public Long executeTask(Task task) throws DataVinesServerException {
+        Long taskId = create(task);
 
         Command command = new Command();
         command.setType(CommandType.START);
@@ -150,10 +197,7 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements T
                 .eq("status",ExecutionStatus.RUNNING_EXECUTION.getCode()));
     }
 
-    private void checkTaskParameter(SubmitTask submitTask) throws DataVinesServerException {
-        TaskParameter taskParameter = submitTask.getParameter();
-        String engineType = submitTask.getEngineType();
-
+    private void checkTaskParameter(TaskParameter taskParameter, String engineType) throws DataVinesServerException {
         String metricType = taskParameter.getMetricType();
         Set<String> metricPluginSet = PluginLoader.getPluginLoader(SqlMetric.class).getSupportedPlugins();
         if (!metricPluginSet.contains(metricType)) {
@@ -172,23 +216,23 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements T
             throw new DataVinesServerException(String.format("%s engine does not supported %s metric", engineType, metricType));
         }
 
-        ConnectorParameter srcConnectorParameter = taskParameter.getSrcConnectorParameter();
-        if (srcConnectorParameter != null) {
-            String srcConnectorType = srcConnectorParameter.getType();
+        ConnectorParameter connectorParameter = taskParameter.getConnectorParameter();
+        if (connectorParameter != null) {
+            String connectorType = connectorParameter.getType();
             Set<String> connectorFactoryPluginSet =
                     PluginLoader.getPluginLoader(ConnectorFactory.class).getSupportedPlugins();
-            if (!connectorFactoryPluginSet.contains(srcConnectorType)) {
-                throw new DataVinesServerException(String.format("%s connector does not supported", srcConnectorType));
+            if (!connectorFactoryPluginSet.contains(connectorType)) {
+                throw new DataVinesServerException(String.format("%s connector does not supported", connectorType));
             }
 
             if (JDBC.equals(engineType)) {
-                ConnectorFactory srcConnectorFactory = PluginLoader.getPluginLoader(ConnectorFactory.class).getOrCreatePlugin(srcConnectorType);
-                if (!JDBC.equals(srcConnectorFactory.getCategory())) {
-                    throw new DataVinesServerException(String.format("jdbc engine does not supported %s connector", srcConnectorType));
+                ConnectorFactory connectorFactory = PluginLoader.getPluginLoader(ConnectorFactory.class).getOrCreatePlugin(connectorType);
+                if (!JDBC.equals(connectorFactory.getCategory())) {
+                    throw new DataVinesServerException(String.format("jdbc engine does not supported %s connector", connectorType));
                 }
             }
         } else {
-            throw new DataVinesServerException("src connector parameter should not be null");
+            throw new DataVinesServerException("connector parameter should not be null");
         }
 
         String expectedMetric = taskParameter.getExpectedType();
@@ -202,5 +246,56 @@ public class TaskServiceImpl extends ServiceImpl<TaskMapper, Task>  implements T
         if (!resultFormulaPluginSet.contains(resultFormula)) {
             throw new DataVinesServerException(String.format("%s result formula does not supported", metricType));
         }
+    }
+
+    @Override
+    public Object readErrorDataPage(Long taskId, Integer pageNumber, Integer pageSize)  {
+
+        Task task = getById(taskId);
+        if (task == null) {
+            throw new DataVinesServerException(ApiStatus.TASK_NOT_EXIST_ERROR, taskId);
+        }
+
+        String errorDataStorageType = task.getErrorDataStorageType();
+        String errorDataStorageParameter = task.getErrorDataStorageParameter();
+        String errorDataFileName = task.getErrorDataFileName();
+
+        StorageFactory storageFactory =
+                PluginLoader.getPluginLoader(StorageFactory.class).getOrCreatePlugin(errorDataStorageType);
+
+        ExecuteRequestParam param = new ExecuteRequestParam();
+        param.setType(errorDataStorageType);
+        param.setDataSourceParam(errorDataStorageParameter);
+        param.setScript(errorDataFileName);
+        param.setPageNumber(pageNumber);
+        param.setPageSize(pageSize);
+
+        Object result = null;
+        try {
+            result = storageFactory.getStorageExecutor().executeSyncQuery(param).getResult();
+        } catch (Exception exception) {
+            throw new DataVinesException(exception);
+        }
+
+        return result;
+    }
+
+    /**
+     * get task host from taskId
+     * @param taskId
+     * @return
+     * @throws DataVinesServerException
+     */
+    @Override
+    public String getTaskExecuteHost(Long taskId) {
+        Task task = baseMapper.selectById(taskId);
+        if(null == task){
+            throw new DataVinesServerException(ApiStatus.TASK_NOT_EXIST_ERROR, taskId);
+        }
+        String executeHost = task.getExecuteHost();
+        if(StringUtils.isEmpty(executeHost)){
+            throw new DataVinesServerException(ApiStatus.TASK_EXECUTE_HOST_NOT_EXIST_ERROR, taskId);
+        }
+        return executeHost;
     }
 }

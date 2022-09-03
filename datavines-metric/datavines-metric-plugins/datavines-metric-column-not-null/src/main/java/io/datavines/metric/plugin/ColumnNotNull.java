@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin;
 
 import io.datavines.metric.api.MetricDimension;
@@ -33,6 +32,11 @@ public class ColumnNotNull extends BaseSingleTableColumn {
     @Override
     public String getName() {
         return "column_not_null";
+    }
+
+    @Override
+    public String getZhName() {
+        return "不为空检查";
     }
 
     @Override
@@ -58,10 +62,4 @@ public class ColumnNotNull extends BaseSingleTableColumn {
         }
         super.prepare(config);
     }
-
-    @Override
-    public Set<String> getConfigSet() {
-        return configSet;
-    }
-
 }

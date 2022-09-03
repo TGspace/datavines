@@ -17,6 +17,9 @@
 
 package io.datavines.server.coordinator.repository.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import io.datavines.server.coordinator.api.dto.vo.JobVO;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -31,4 +34,7 @@ public interface JobMapper extends BaseMapper<Job> {
     @Select("SELECT * from dv_job WHERE datasource_id = #{datasourceId} ")
     List<Job> listByDataSourceId(long dataSourceId);
 
+    IPage<JobVO> getJobPage(Page<JobVO> page,
+                                   @Param("searchVal") String searchVal,
+                                   @Param("datasourceId") Long datasourceId);
 }

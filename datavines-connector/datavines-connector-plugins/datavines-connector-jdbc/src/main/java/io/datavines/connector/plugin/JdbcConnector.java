@@ -14,17 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.connector.plugin;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.datavines.common.CommonConstants;
 import io.datavines.common.entity.QueryColumn;
 import io.datavines.common.entity.TableInfo;
 import io.datavines.common.param.*;
+import io.datavines.common.param.form.PluginParams;
+import io.datavines.common.param.form.PropsType;
+import io.datavines.common.param.form.Validate;
+import io.datavines.common.param.form.props.InputParamsProps;
+import io.datavines.common.param.form.type.InputParam;
 import io.datavines.common.utils.JSONUtils;
 import io.datavines.common.utils.Md5Utils;
 import io.datavines.connector.api.Connector;
-import io.datavines.connector.plugin.datasource.*;
-import io.datavines.connector.plugin.utils.DataSourceUtils;
+import io.datavines.common.jdbc.datasource.*;
+import io.datavines.common.jdbc.utils.DataSourceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,11 +179,89 @@ public abstract class JdbcConnector implements Connector, IDataSourceInfo {
         return ConnectorResponse.builder().status(ConnectorResponse.Status.SUCCESS).result(false).build();
     }
 
+    @Override
+    public String getConfigJson(boolean isEn) {
+        InputParam host = getInputParam("host",
+                isEn ? "host":"地址",
+                isEn ? "please enter host ip" : "请填入连接地址", 1, Validate.newBuilder()
+                .setRequired(true).setMessage(isEn ? "please enter host ip" : "请填入连接地址")
+                .build());
+        InputParam port = getInputParam("port",
+                isEn ? "port" : "端口",
+                isEn ? "please enter port" : "请填入端口号", 1, Validate.newBuilder()
+                .setRequired(true).setMessage(isEn ? "please enter port" : "请填入端口号")
+                .build());
+        InputParam database = getInputParam("database",
+                isEn ? "database" : "数据库",
+                isEn ? "please enter database" : "请填入数据库", 1, Validate.newBuilder()
+                .setRequired(true).setMessage(isEn ? "please enter database" : "请填入数据库")
+                .build());
+        InputParam user = getInputParam("user",
+                isEn ? "user" : "用户名",
+                isEn ? "please enter user" : "请填入用户名", 1, Validate.newBuilder()
+                .setRequired(true).setMessage(isEn ? "please enter user" : "请填入用户名")
+                .build());
+        InputParam password = getInputParam("password",
+                isEn ? "password" : "密码",
+                isEn ? "please enter password" : "请填入密码", 1, Validate.newBuilder()
+                .setRequired(true).setMessage(isEn ? "please enter password" : "请填入密码")
+                .build());
+        InputParam properties = getInputParamNoValidate("properties",
+                isEn ? "properties" : "参数",
+                isEn ? "please enter properties,like key=value&key1=value1" : "请填入参数，格式为key=value&key1=value1", 2);
+
+        List<PluginParams> params = new ArrayList<>();
+        params.add(host);
+        params.add(port);
+        params.add(database);
+        params.add(user);
+        params.add(password);
+        params.add(properties);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        String result = null;
+
+        try {
+            result = mapper.writeValueAsString(params);
+        } catch (JsonProcessingException e) {
+            logger.error("json parse error : {}", e.getMessage(), e);
+        }
+
+        return result;
+    }
+
+    private InputParam getInputParam(String field, String title, String placeholder, int rows, Validate validate) {
+        return InputParam
+                .newBuilder(field, title)
+                .addValidate(validate)
+                .setProps(new InputParamsProps().setDisabled(false))
+                .setSize(CommonConstants.SMALL)
+                .setType(PropsType.TEXT)
+                .setRows(rows)
+                .setPlaceholder(placeholder)
+                .setEmit(null)
+                .build();
+    }
+
+    private InputParam getInputParamNoValidate(String field, String title, String placeholder, int rows) {
+        return InputParam
+                .newBuilder(field, title)
+                .setProps(new InputParamsProps().setDisabled(false))
+                .setSize(CommonConstants.SMALL)
+                .setType(PropsType.TEXTAREA)
+                .setRows(rows)
+                .setPlaceholder(placeholder)
+                .setEmit(null)
+                .setValue("useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai")
+                .build();
+    }
+
     public List<String> getPrimaryKeys(String dbName, String tableName, DatabaseMetaData metaData) {
         ResultSet rs = null;
         List<String> primaryKeys = new ArrayList<>();
         try {
-            rs = metaData.getPrimaryKeys(dbName, null, tableName);
+            rs = metaData.getPrimaryKeys(null, dbName, tableName);
 
             if (rs == null) {
                 return primaryKeys;
@@ -219,7 +305,7 @@ public abstract class JdbcConnector implements Connector, IDataSourceInfo {
             String key = Md5Utils.getMd5(param, false);
             ConnectionInfo connectionInfo = JSONUtils.parseObject(param,ConnectionInfo.class);
             BaseDataSourceInfo dataSourceInfo = getDatasourceInfo(connectionInfo);
-            DataSourceInfoManager.putDataSourceInfo(dataSourceInfo, key);
+            DataSourceInfoManager.putDataSourceInfo(key,dataSourceInfo);
         }
 
         return DataSourceInfoManager.getDatasourceInfo(param);
@@ -231,5 +317,8 @@ public abstract class JdbcConnector implements Connector, IDataSourceInfo {
 
     public abstract ResultSet getMetadataTables(DatabaseMetaData metaData, String dbName, String schema) throws SQLException;
 
-    public abstract ResultSet getMetadataDatabases(Connection connection) throws SQLException;
+    public  ResultSet getMetadataDatabases(Connection connection) throws SQLException {
+        java.sql.Statement stmt = connection.createStatement();
+        return stmt.executeQuery("show databases");
+    }
 }

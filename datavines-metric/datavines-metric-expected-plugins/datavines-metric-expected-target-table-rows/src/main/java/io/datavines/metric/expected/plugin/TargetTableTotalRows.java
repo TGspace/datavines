@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.expected.plugin;
 
 import io.datavines.metric.api.ExpectedValue;
@@ -24,11 +23,16 @@ import java.util.Map;
 public class TargetTableTotalRows implements ExpectedValue {
 
     private StringBuilder sql =
-            new StringBuilder("select count(*) as expected_value from ${target_table}");
+            new StringBuilder("select count(1) as expected_value from ${target_table}");
 
     @Override
     public String getName() {
         return "expected_value";
+    }
+
+    @Override
+    public String getZhName() {
+        return "目标表总行数";
     }
 
     @Override

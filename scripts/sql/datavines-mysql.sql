@@ -1,8 +1,5 @@
 SET FOREIGN_KEY_CHECKS=0;
 
--- ----------------------------
--- Table structure for QRTZ_BLOB_TRIGGERS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_BLOB_TRIGGERS`;
 CREATE TABLE `QRTZ_BLOB_TRIGGERS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -14,13 +11,6 @@ CREATE TABLE `QRTZ_BLOB_TRIGGERS` (
     CONSTRAINT `QRTZ_BLOB_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_BLOB_TRIGGERS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_CALENDARS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_CALENDARS`;
 CREATE TABLE `QRTZ_CALENDARS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -29,13 +19,6 @@ CREATE TABLE `QRTZ_CALENDARS` (
     PRIMARY KEY (`SCHED_NAME`,`CALENDAR_NAME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_CALENDARS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_CRON_TRIGGERS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_CRON_TRIGGERS`;
 CREATE TABLE `QRTZ_CRON_TRIGGERS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -47,13 +30,6 @@ CREATE TABLE `QRTZ_CRON_TRIGGERS` (
     CONSTRAINT `QRTZ_CRON_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_CRON_TRIGGERS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_FIRED_TRIGGERS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_FIRED_TRIGGERS`;
 CREATE TABLE `QRTZ_FIRED_TRIGGERS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -78,13 +54,6 @@ CREATE TABLE `QRTZ_FIRED_TRIGGERS` (
     KEY `IDX_QRTZ_FT_TG` (`SCHED_NAME`,`TRIGGER_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_FIRED_TRIGGERS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_JOB_DETAILS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_JOB_DETAILS`;
 CREATE TABLE `QRTZ_JOB_DETAILS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -102,13 +71,6 @@ CREATE TABLE `QRTZ_JOB_DETAILS` (
     KEY `IDX_QRTZ_J_GRP` (`SCHED_NAME`,`JOB_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_JOB_DETAILS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_LOCKS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_LOCKS`;
 CREATE TABLE `QRTZ_LOCKS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -116,13 +78,6 @@ CREATE TABLE `QRTZ_LOCKS` (
     PRIMARY KEY (`SCHED_NAME`,`LOCK_NAME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_LOCKS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_PAUSED_TRIGGER_GRPS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_PAUSED_TRIGGER_GRPS`;
 CREATE TABLE `QRTZ_PAUSED_TRIGGER_GRPS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -130,13 +85,6 @@ CREATE TABLE `QRTZ_PAUSED_TRIGGER_GRPS` (
     PRIMARY KEY (`SCHED_NAME`,`TRIGGER_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_PAUSED_TRIGGER_GRPS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_SCHEDULER_STATE
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_SCHEDULER_STATE`;
 CREATE TABLE `QRTZ_SCHEDULER_STATE` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -146,13 +94,6 @@ CREATE TABLE `QRTZ_SCHEDULER_STATE` (
     PRIMARY KEY (`SCHED_NAME`,`INSTANCE_NAME`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_SCHEDULER_STATE
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_SIMPLE_TRIGGERS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_SIMPLE_TRIGGERS`;
 CREATE TABLE `QRTZ_SIMPLE_TRIGGERS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -165,13 +106,6 @@ CREATE TABLE `QRTZ_SIMPLE_TRIGGERS` (
     CONSTRAINT `QRTZ_SIMPLE_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_SIMPLE_TRIGGERS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_SIMPROP_TRIGGERS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_SIMPROP_TRIGGERS`;
 CREATE TABLE `QRTZ_SIMPROP_TRIGGERS` (
     `SCHED_NAME` varchar(120) NOT NULL,
@@ -192,13 +126,6 @@ CREATE TABLE `QRTZ_SIMPROP_TRIGGERS` (
     CONSTRAINT `QRTZ_SIMPROP_TRIGGERS_ibfk_1` FOREIGN KEY (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`) REFERENCES `QRTZ_TRIGGERS` (`SCHED_NAME`, `TRIGGER_NAME`, `TRIGGER_GROUP`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- ----------------------------
--- Records of QRTZ_SIMPROP_TRIGGERS
--- ----------------------------
-
--- ----------------------------
--- Table structure for QRTZ_TRIGGERS
--- ----------------------------
 DROP TABLE IF EXISTS `QRTZ_TRIGGERS`;
 CREATE TABLE `QRTZ_TRIGGERS` (
      `SCHED_NAME` varchar(120) NOT NULL,
@@ -261,18 +188,45 @@ CREATE TABLE `dv_job` (
     `name` varchar(255) DEFAULT NULL COMMENT '任务名称',
     `type` int(11) NOT NULL DEFAULT '0',
     `datasource_id` bigint(20) NOT NULL,
+    `datasource_id_2` bigint(20) NOT NULL,
+    `schema_name` varchar(128) DEFAULT NULL,
+    `table_name` varchar(128) DEFAULT NULL,
+    `column_name` varchar(128) DEFAULT NULL,
+    `metric_type` varchar(128) DEFAULT NULL,
+    `execute_platform_type` varchar(128) DEFAULT NULL,
+    `execute_platform_parameter` text,
+    `engine_type` varchar(128) DEFAULT NULL,
+    `engine_parameter` text,
+    `error_data_storage_id` bigint(20) DEFAULT NULL,
     `parameter` text COMMENT '任务参数',
     `retry_times` int(11) DEFAULT NULL COMMENT '重试次数',
     `retry_interval` int(11) DEFAULT NULL COMMENT '重试间隔',
     `timeout` int(11) DEFAULT NULL COMMENT '任务超时时间',
     `timeout_strategy` int(11) DEFAULT NULL COMMENT '超时策略',
-    `tenant_code` varchar(255) DEFAULT NULL COMMENT '代理用户',
-    `create_by` int(11) DEFAULT NULL COMMENT '创建用户id',
+    `tenant_code` bigint(20) DEFAULT NULL COMMENT '代理用户',
+    `env` bigint(20) DEFAULT NULL COMMENT '环境配置',
+    `create_by` bigint(20) DEFAULT NULL COMMENT '创建用户id',
     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_by` int(11) DEFAULT NULL COMMENT '更新用户id',
+    `update_by` bigint(20) DEFAULT NULL COMMENT '更新用户id',
     `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (`id`),
-    UNIQUE KEY `unique_name` (`name`) USING BTREE
+    UNIQUE KEY `unique_name` (`name`,`schema_name`,`table_name`,`column_name`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `dv_job_schedule` (
+    `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `type` varchar(255) NOT NULL,
+    `param` text DEFAULT NULL,
+    `job_id` bigint(20) NOT NULL,
+    `cron_expression` varchar(255) DEFAULT NULL,
+    `status` tinyint(1) DEFAULT NULL,
+    `start_time` datetime DEFAULT NULL,
+    `end_time` datetime DEFAULT NULL,
+    `create_by` bigint(20) DEFAULT NULL,
+    `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+    `update_by` bigint(20) DEFAULT NULL,
+    `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `dv_server` (
@@ -295,6 +249,9 @@ CREATE TABLE `dv_task` (
     `execute_platform_parameter` text,
     `engine_type` varchar(128) DEFAULT NULL,
     `engine_parameter` text,
+    `error_data_storage_type` varchar(128) DEFAULT NULL,
+    `error_data_storage_parameter` text,
+    `error_data_file_name` varchar(255) DEFAULT NULL,
     `parameter` text NOT NULL,
     `status` int(11) DEFAULT NULL,
     `retry_times` int(11) DEFAULT NULL COMMENT '重试次数',
@@ -310,6 +267,7 @@ CREATE TABLE `dv_task` (
     `log_path` varchar(255) DEFAULT NULL COMMENT 'log path',
     `env` text,
     `submit_time` datetime DEFAULT NULL,
+    `schedule_time` datetime DEFAULT NULL,
     `start_time` datetime DEFAULT NULL,
     `end_time` datetime DEFAULT NULL,
     `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -319,18 +277,20 @@ CREATE TABLE `dv_task` (
 
 CREATE TABLE `dv_task_result` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
+    `task_id` bigint(20) DEFAULT NULL,
     `metric_type` varchar(255) DEFAULT NULL,
     `metric_dimension` varchar(255) DEFAULT NULL,
     `metric_name` varchar(255) DEFAULT NULL,
-    `task_id` bigint(20) DEFAULT NULL,
+    `database_name` varchar(255) DEFAULT NULL,
+    `table_name` varchar(255) DEFAULT NULL,
+    `column_name` varchar(255) DEFAULT NULL,
     `actual_value` double DEFAULT NULL,
     `expected_value` double DEFAULT NULL,
     `expected_type` varchar(255) DEFAULT NULL,
     `result_formula` varchar(255) DEFAULT NULL,
     `operator` varchar(255) DEFAULT NULL,
     `threshold` double DEFAULT NULL,
-    `failure_strategy` varchar(255) DEFAULT NULL,
-    `state` varchar(255) NOT NULL DEFAULT 'none',
+    `state` int(2) NOT NULL DEFAULT 0,
     `create_time` datetime DEFAULT NULL,
     `update_time` datetime DEFAULT NULL,
     PRIMARY KEY (`id`)
@@ -347,7 +307,7 @@ CREATE TABLE `dv_datasource` (
     `update_by` bigint(20) DEFAULT NULL,
     `update_time` datetime DEFAULT NULL,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `datasource_un` (`name`)
+    UNIQUE KEY `datasource_un` (`name`,`workspace_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `dv_workspace` (
@@ -373,3 +333,117 @@ CREATE TABLE `dv_user` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `user_un` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS dv_sla;
+CREATE TABLE dv_sla (
+    id bigint(20) NOT NULL AUTO_INCREMENT,
+    workspace_id bigint(20) NOT NULL,
+    name varchar(255) NOT NULL,
+    description varchar(255) NOT NULL,
+    create_by bigint(20) DEFAULT NULL,
+    create_time datetime default current_timestamp,
+    update_by bigint(20) DEFAULT NULL,
+    update_time datetime default current_timestamp,
+    PRIMARY KEY (`id`)
+);
+
+DROP TABLE IF EXISTS dv_sla_job;
+CREATE TABLE dv_sla_job (
+    id bigint(20) NOT NULL AUTO_INCREMENT,
+    sla_id bigint(20) NOT NULL,
+    workspace_id bigint(20) NOT NULL,
+    job_id bigint(20) NOT NULL,
+    create_by bigint(20) DEFAULT NULL,
+    create_time datetime DEFAULT current_timestamp,
+    update_by bigint(20) DEFAULT NULL,
+    update_time datetime DEFAULT current_timestamp,
+    PRIMARY KEY (`id`)
+);
+
+DROP TABLE if EXISTS dv_sla_notification;
+CREATE TABLE dv_sla_notification(
+    id bigint(20) NOT NULL AUTO_INCREMENT,
+    type VARCHAR(40) NOT NULL,
+    workspace_id bigint(20) NOT NULL,
+    sla_id bigint(20) NOT NULL,
+    sender_id bigint(20) NOT null,
+    config text DEFAULT NULL ,
+    create_by bigint(20) DEFAULT NULL,
+    create_time datetime DEFAULT current_timestamp,
+    update_by bigint(20) DEFAULT NULL,
+    update_time datetime DEFAULT current_timestamp,
+    PRIMARY KEY (`id`)
+);
+
+DROP TABLE if exists dv_sla_sender;
+CREATE TABLE dv_sla_sender(
+    id bigint(20) NOT NULL AUTO_INCREMENT,
+    type VARCHAR(40) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    workspace_id bigint(20) NOT NULL,
+    config text NOT NULL,
+    create_by bigint(20) DEFAULT NULL,
+    create_time datetime DEFAULT current_timestamp,
+    update_by bigint(20) DEFAULT NULL,
+    update_time datetime DEFAULT current_timestamp,
+    PRIMARY KEY (`id`)
+);
+
+DROP TABLE IF EXISTS `dv_env`;
+CREATE TABLE `dv_env` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL COMMENT '服务器环境配置',
+  `env` text NOT NULL,
+  `workspace_id` bigint(20) NOT NULL,
+  `create_by` bigint(20) NOT NULL COMMENT '创建用户id',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_by` bigint(20) NOT NULL COMMENT '更新用户id',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `env_name` (`name`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `dv_tenant`;
+CREATE TABLE `dv_tenant` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `tenant` varchar(255) NOT NULL COMMENT 'Linux服务器用户',
+  `workspace_id` bigint(20) NOT NULL,
+  `create_by` bigint(20) NOT NULL COMMENT '创建用户id',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_by` bigint(20) NOT NULL COMMENT '更新用户id',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `tenant_name` (`tenant`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `dv_error_data_storage`;
+CREATE TABLE `dv_error_data_storage` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL,
+  `param` text NOT NULL,
+  `workspace_id` bigint(20) NOT NULL,
+  `create_by` int(11) NOT NULL COMMENT '创建用户id',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_by` int(11) NOT NULL COMMENT '更新用户id',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name_wp_un` (`name`,`workspace_id`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+DROP TABLE IF EXISTS `dv_user_workspace`;
+CREATE TABLE `dv_user_workspace` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `user_id` bigint(20) NOT NULL,
+  `workspace_id` bigint(20) NOT NULL,
+  `role_id` bigint(20) NOT NULL,
+  `create_by` bigint(20) DEFAULT NULL,
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_by` bigint(20) DEFAULT NULL,
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+INSERT INTO `dv_user` (`id`, `username`, `password`, `email`, `phone`, `admin`, `create_time`, `update_time`) VALUES ('1', 'admin', '$2a$10$9ZcicUYFl/.knBi9SE53U.Nml8bfNeArxr35HQshxXzimbA6Ipgqq', 'admin@gmail.com', NULL, '0', NULL, '2022-05-04 22:08:24');
+INSERT INTO `dv_workspace` (`id`, `name`, `create_by`, `create_time`, `update_by`, `update_time`) VALUES ('1', "admin\'s default", '1', '2022-05-20 23:01:18', '1', '2022-05-20 23:01:21');
+INSERT INTO `dv_user_workspace` (`id`, `user_id`, `workspace_id`, `role_id`,`create_by`, `create_time`, `update_by`, `update_time`) VALUES ('1', '1', '1', '1','1', '2022-07-16 20:34:02', '1', '2022-07-16 20:34:02');

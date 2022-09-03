@@ -17,19 +17,31 @@
 
 package io.datavines.server.coordinator.repository.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import io.datavines.core.exception.DataVinesServerException;
+import io.datavines.server.coordinator.api.dto.bo.job.JobCreate;
+import io.datavines.server.coordinator.api.dto.bo.job.JobUpdate;
+import io.datavines.server.coordinator.api.dto.vo.JobVO;
 import io.datavines.server.coordinator.repository.entity.Job;
 
 public interface JobService {
 
-    long insert(Job job);
+    long create(JobCreate jobCreate) throws DataVinesServerException;
 
-    int update(Job job);
+    int deleteById(long id);
+
+    int deleteByDataSourceId(long datasourceId);
+
+    int update(JobUpdate jobUpdate);
 
     Job getById(long id);
 
     List<Job> listByDataSourceId(Long dataSourceId);
 
-    int deleteById(long id);
+    IPage<JobVO> getJobPage(String searchVal, Long dataSourceId, Integer pageNumber, Integer pageSize);
+
+    boolean execute(Long jobId, LocalDateTime scheduleTime) throws DataVinesServerException;
 }

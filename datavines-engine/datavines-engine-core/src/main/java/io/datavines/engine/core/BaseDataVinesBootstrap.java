@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.core;
 
 import io.datavines.common.entity.ProcessResult;
@@ -73,7 +72,7 @@ public abstract class BaseDataVinesBootstrap {
     }
 
     @SafeVarargs
-    private final void checkConfig(List<? extends Component>... components) {
+    private final void checkConfig(List<? extends Component>... components) throws Exception{
         boolean configValid = true;
         for (List<? extends Component> componentList : components) {
             for (Component component : componentList) {
@@ -92,7 +91,7 @@ public abstract class BaseDataVinesBootstrap {
 
                 if (!configValid) {
                     // invalid configuration
-                    System.exit(-1);
+                    throw new Exception("config is invalid , please check the config");
                 }
             }
         }
@@ -106,23 +105,15 @@ public abstract class BaseDataVinesBootstrap {
     }
 
     private void showConfigError(Throwable throwable) {
-        logger.info(
-                "\n\n===============================================================================\n\n");
         String errorMsg = throwable.getMessage();
         logger.info("Config Error:\n");
         logger.info("Reason: " + errorMsg + "\n");
-        logger.info(
-                "\n===============================================================================\n\n\n");
     }
 
     private void showFatalError(Throwable throwable) {
-        logger.info(
-                "\n\n===============================================================================\n\n");
         String errorMsg = throwable.getMessage();
         logger.info("Fatal Error, \n");
         logger.info("Reason: " + errorMsg + "\n");
         logger.info("Exception StackTrace: " + ExceptionUtils.getStackTrace(throwable));
-        logger.info(
-                "\n===============================================================================\n\n\n");
     }
 }

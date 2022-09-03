@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin;
 
+import io.datavines.metric.api.ConfigItem;
 import io.datavines.metric.api.MetricDimension;
 import io.datavines.metric.api.MetricType;
 import io.datavines.metric.plugin.base.BaseSingleTableColumn;
@@ -27,9 +27,9 @@ import java.util.Set;
 public class TableFreshness extends BaseSingleTableColumn {
 
     public TableFreshness(){
-        configSet.add("begin_time");
-        configSet.add("deadline_time");
-        configSet.add("datetime_format");
+        configMap.put("begin_time",new ConfigItem("begin_time", "开始时间", "begin_time"));
+        configMap.put("deadline_time",new ConfigItem("deadline_time", "结束时间", "deadline_time"));
+        configMap.put("datetime_format",new ConfigItem("datetime_format", "时间格式", "datetime_format"));
 
         requiredOptions.add("begin_time");
         requiredOptions.add("deadline_time");
@@ -39,6 +39,11 @@ public class TableFreshness extends BaseSingleTableColumn {
     @Override
     public String getName() {
         return "table_freshness";
+    }
+
+    @Override
+    public String getZhName() {
+        return "及时性检查";
     }
 
     @Override
@@ -65,8 +70,4 @@ public class TableFreshness extends BaseSingleTableColumn {
         super.prepare(config);
     }
 
-    @Override
-    public Set<String> getConfigSet() {
-        return configSet;
-    }
 }

@@ -14,14 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.api;
 
 import io.datavines.engine.api.component.Component;
-
-import java.sql.Connection;
+import io.datavines.engine.jdbc.api.entity.ConnectionItem;
 
 public interface JdbcSource extends Component {
 
-    Connection getConnection(JdbcRuntimeEnvironment env);
+    ConnectionItem getConnectionItem(JdbcRuntimeEnvironment env);
 }

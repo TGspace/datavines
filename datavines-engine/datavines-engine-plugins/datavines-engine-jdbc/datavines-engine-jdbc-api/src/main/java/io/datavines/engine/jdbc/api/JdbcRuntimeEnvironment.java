@@ -14,24 +14,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.api;
 
 import io.datavines.common.config.CheckResult;
 import io.datavines.common.config.Config;
 import io.datavines.engine.api.env.Execution;
 import io.datavines.engine.api.env.RuntimeEnvironment;
+import io.datavines.engine.jdbc.api.entity.ConnectionItem;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 public class JdbcRuntimeEnvironment implements RuntimeEnvironment {
 
-    private Connection sourceConnection;
+    private ConnectionItem sourceConnection;
 
-    private Connection targetConnection;
+    private ConnectionItem targetConnection;
 
-    private Connection metadataConnection;
+    private ConnectionItem metadataConnection;
 
     @Override
     public void prepare() {
@@ -58,37 +57,41 @@ public class JdbcRuntimeEnvironment implements RuntimeEnvironment {
         return null;
     }
 
-    public Connection getSourceConnection() {
+    public ConnectionItem getSourceConnection() {
         return sourceConnection;
     }
 
-    public void setSourceConnection(Connection sourceConnection) {
+    public void setSourceConnection(ConnectionItem sourceConnection) {
         this.sourceConnection = sourceConnection;
     }
 
-    public Connection getMetadataConnection() {
+    public ConnectionItem getMetadataConnection() {
         return metadataConnection;
     }
 
-    public void setMetadataConnection(Connection metadataConnection) {
+    public void setMetadataConnection(ConnectionItem metadataConnection) {
         this.metadataConnection = metadataConnection;
     }
 
-    public Connection getTargetConnection() {
+    public ConnectionItem getTargetConnection() {
         return targetConnection;
     }
 
-    public void setTargetConnection(Connection targetConnection) {
+    public void setTargetConnection(ConnectionItem targetConnection) {
         this.targetConnection = targetConnection;
     }
 
     public void close() throws SQLException {
         if(sourceConnection != null) {
-            sourceConnection.close();
+            sourceConnection.getConnection().close();
+        }
+
+        if(targetConnection != null) {
+            targetConnection.getConnection().close();
         }
 
         if(metadataConnection != null) {
-            metadataConnection.close();
+            metadataConnection.getConnection().close();
         }
     }
 }

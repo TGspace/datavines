@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.jdbc.api;
 
 import io.datavines.common.config.enums.SinkType;
@@ -47,10 +46,10 @@ public class JdbcExecution implements Execution<JdbcSource, JdbcTransform, JdbcS
         sources.forEach(jdbcSource -> {
             switch (SourceType.of(jdbcSource.getConfig().getString(PLUGIN_TYPE))){
                 case NORMAL:
-                    jdbcRuntimeEnvironment.setSourceConnection(jdbcSource.getConnection(jdbcRuntimeEnvironment));
+                    jdbcRuntimeEnvironment.setSourceConnection(jdbcSource.getConnectionItem(jdbcRuntimeEnvironment));
                     break;
                 case METADATA:
-                    jdbcRuntimeEnvironment.setMetadataConnection(jdbcSource.getConnection(jdbcRuntimeEnvironment));
+                    jdbcRuntimeEnvironment.setMetadataConnection(jdbcSource.getConnectionItem(jdbcRuntimeEnvironment));
                     break;
                 default:
                     break;
@@ -82,11 +81,16 @@ public class JdbcExecution implements Execution<JdbcSource, JdbcTransform, JdbcS
 
         sinks.forEach(jdbcSink -> {
             switch (SinkType.of(jdbcSink.getConfig().getString(PLUGIN_TYPE))){
+                case ERROR_DATA:
+                    jdbcSink.output(null, jdbcRuntimeEnvironment);
+                    break;
                 case ACTUAL_VALUE:
                     jdbcSink.output(actualValue, jdbcRuntimeEnvironment);
                     break;
                 case TASK_RESULT:
                     jdbcSink.output(taskResult, jdbcRuntimeEnvironment);
+                    break;
+
                 default:
                     break;
             }

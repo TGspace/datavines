@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin;
 
+import io.datavines.metric.api.ConfigItem;
 import io.datavines.metric.api.MetricDimension;
 import io.datavines.metric.api.MetricType;
 import io.datavines.metric.plugin.base.BaseSingleTableColumn;
@@ -28,8 +28,9 @@ public class ColumnLength extends BaseSingleTableColumn {
 
     public ColumnLength(){
         super();
-        configSet.add("length");
-        configSet.add("comparator");
+
+        configMap.put("length",new ConfigItem("length", "长度", "length"));
+        configMap.put("comparator",new ConfigItem("comparator", "比较符", "comparator"));
 
         requiredOptions.add("length");
         requiredOptions.add("comparator");
@@ -38,6 +39,11 @@ public class ColumnLength extends BaseSingleTableColumn {
     @Override
     public String getName() {
         return "column_length";
+    }
+
+    @Override
+    public String getZhName() {
+        return "长度检查";
     }
 
     @Override
@@ -62,10 +68,5 @@ public class ColumnLength extends BaseSingleTableColumn {
             filters.add(" length(${column}) ${comparator} ${length}");
         }
         super.prepare(config);
-    }
-
-    @Override
-    public Set<String> getConfigSet() {
-        return configSet;
     }
 }

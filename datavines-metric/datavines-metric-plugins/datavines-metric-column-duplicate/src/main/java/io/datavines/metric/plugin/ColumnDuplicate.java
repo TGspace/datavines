@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin;
 
 import io.datavines.metric.api.MetricDimension;
@@ -28,11 +27,17 @@ public class ColumnDuplicate extends BaseSingleTableColumn {
 
     public ColumnDuplicate(){
         super();
+        invalidateItemsSql = new StringBuilder("select ${column} from ${table}");
     }
 
     @Override
     public String getName() {
         return "column_duplicate";
+    }
+
+    @Override
+    public String getZhName() {
+        return "重复值检测";
     }
 
     @Override
@@ -58,13 +63,8 @@ public class ColumnDuplicate extends BaseSingleTableColumn {
         }
 
         if (config.containsKey("column")) {
-            invalidateItemsSql.append(" group by ${column} having count(*) > 1");
+            invalidateItemsSql.append(" group by ${column} having count(${column}) > 1");
         }
 
-    }
-
-    @Override
-    public Set<String> getConfigSet() {
-        return configSet;
     }
 }

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.expected.plugin;
 
 import io.datavines.metric.api.ExpectedValue;
@@ -25,7 +24,12 @@ public class FixValue implements ExpectedValue {
 
     @Override
     public String getName() {
-        return null;
+        return "fix_value";
+    }
+
+    @Override
+    public String getZhName() {
+        return "固定值";
     }
 
     @Override

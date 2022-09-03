@@ -14,33 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin.base;
 
 import io.datavines.common.config.CheckResult;
 import io.datavines.common.config.ConfigChecker;
 import io.datavines.common.entity.ExecuteSql;
-import io.datavines.common.utils.JSONUtils;
+import io.datavines.metric.api.ConfigItem;
 import io.datavines.metric.api.SqlMetric;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
-public abstract class BaseSingleTable implements SqlMetric {
+public abstract class
+BaseSingleTable implements SqlMetric {
 
-    protected final StringBuilder invalidateItemsSql = new StringBuilder("select * from ${table}");
+    protected StringBuilder invalidateItemsSql = new StringBuilder("select * from ${table}");
 
-    private final StringBuilder actualValueSql = new StringBuilder("select count(*) as actual_value from ${invalidate_items_table}");
+    private StringBuilder actualValueSql = new StringBuilder("select count(1) as actual_value from ${invalidate_items_table}");
 
     protected List<String> filters = new ArrayList<>();
 
-    protected Set<String> configSet = new HashSet<>();
+    protected HashMap<String,ConfigItem> configMap = new HashMap<>();
 
     protected Set<String> requiredOptions = new HashSet<>();
 
     public BaseSingleTable() {
-        configSet.add("table");
-        configSet.add("filter");
+        configMap.put("table",new ConfigItem("table", "表名", "table"));
+        configMap.put("filter",new ConfigItem("filter", "过滤条件", "filter"));
 
         requiredOptions.add("table");
     }

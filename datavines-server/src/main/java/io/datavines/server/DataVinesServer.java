@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server;
 
 import com.zaxxer.hikari.HikariDataSource;
 import io.datavines.common.utils.CommonPropertyUtils;
 import io.datavines.common.utils.Stopper;
 import io.datavines.common.utils.ThreadUtils;
+import io.datavines.core.constant.DataVinesConstants;
 import io.datavines.registry.api.Registry;
 import io.datavines.server.coordinator.registry.Register;
 import io.datavines.server.coordinator.server.cache.TaskExecuteManager;
@@ -34,11 +34,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.env.Environment;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.annotation.PostConstruct;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"io.datavines"})
 public class DataVinesServer {
 
     private static final Logger logger = LoggerFactory.getLogger(DataVinesServer.class);
@@ -108,6 +107,7 @@ public class DataVinesServer {
 
             this.taskExecuteManager.close();
             this.register.close();
+            this.taskFailover.close();
 
         } catch (Exception e) {
             logger.error("coordinator server stop exception ", e);

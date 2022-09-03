@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.result.formula;
 
 import io.datavines.metric.api.ResultFormula;
@@ -22,7 +21,27 @@ import io.datavines.metric.api.ResultFormula;
 public class Diff implements ResultFormula {
 
     @Override
+    public String getName() {
+        return "|Actual-Expected|";
+    }
+
+    @Override
+    public String getZhName() {
+        return "|实际值-期望值|";
+    }
+
+    @Override
     public double getResult(double actualValue, double expectedValue) {
         return Math.abs(actualValue - expectedValue);
+    }
+
+    @Override
+    public String getResultFormat(boolean isEn) {
+        return isEn? "|Actual(${actual_value})-Expected(${expected_value})|" : "|实际值(${actual_value})-期望值(${expected_value})|";
+    }
+
+    @Override
+    public String getSymbol() {
+        return "Δ";
     }
 }

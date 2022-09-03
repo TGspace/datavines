@@ -14,11 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.connector.plugin;
 
-import io.datavines.connector.plugin.datasource.BaseDataSourceInfo;
-import io.datavines.connector.plugin.datasource.ConnectionInfo;
+import io.datavines.common.jdbc.datasource.BaseDataSourceInfo;
+import io.datavines.common.jdbc.datasource.ConnectionInfo;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -40,11 +39,5 @@ public class ClickHouseConnector extends JdbcConnector {
     @Override
     public ResultSet getMetadataTables(DatabaseMetaData metaData, String dbName, String schema) throws SQLException {
         return metaData.getTables(null, dbName, null, TABLE_TYPES);
-    }
-
-    @Override
-    public ResultSet getMetadataDatabases(Connection connection) throws SQLException {
-        DatabaseMetaData metaData = connection.getMetaData();
-        return metaData.getSchemas();
     }
 }

@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.config;
 
 import io.datavines.common.config.*;
 import io.datavines.common.config.enums.SourceType;
 import io.datavines.common.entity.*;
 import io.datavines.common.exception.DataVinesException;
+import io.datavines.common.utils.CommonPropertyUtils;
+import io.datavines.common.utils.JSONUtils;
 import io.datavines.common.utils.StringUtils;
 import io.datavines.common.utils.placeholder.PlaceholderUtils;
 import io.datavines.metric.api.ExpectedValue;
@@ -28,8 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.datavines.engine.config.ConfigConstants.*;
-import static io.datavines.engine.config.ConfigConstants.SQL;
+import static io.datavines.engine.api.ConfigConstants.*;
+import static io.datavines.engine.api.ConfigConstants.SQL;
 
 public abstract class BaseDataQualityConfigurationBuilder implements DataQualityConfigurationBuilder {
 
@@ -48,6 +49,7 @@ public abstract class BaseDataQualityConfigurationBuilder implements DataQuality
     @Override
     public void init(Map<String, String> inputParameter, TaskInfo taskInfo, ConnectionInfo connectionInfo) {
         this.inputParameter = inputParameter;
+        this.inputParameter.put(COLUMN, "");
         this.taskInfo = taskInfo;
         this.taskParameter = taskInfo.getTaskParameter();
         this.connectionInfo = connectionInfo;
@@ -64,11 +66,18 @@ public abstract class BaseDataQualityConfigurationBuilder implements DataQuality
             });
         }
 
-        inputParameter.put("result_formula", String.valueOf(taskParameter.getResultFormula()));
-        inputParameter.put("operator", String.valueOf(taskParameter.getOperator()));
-        inputParameter.put("threshold", String.valueOf(taskParameter.getThreshold()));
-        inputParameter.put("failure_strategy", String.valueOf(taskParameter.getFailureStrategy()));
+        inputParameter.put(RESULT_FORMULA, String.valueOf(taskParameter.getResultFormula()));
+        inputParameter.put(OPERATOR, String.valueOf(taskParameter.getOperator()));
+        inputParameter.put(THRESHOLD, String.valueOf(taskParameter.getThreshold()));
         inputParameter.put(EXPECTED_TYPE, StringUtils.wrapperSingleQuotes(taskParameter.getExpectedType()));
+        inputParameter.put(ERROR_DATA_FILE_NAME, taskInfo.getErrorDataFileName());
+
+        if ("local-file".equalsIgnoreCase(taskInfo.getErrorDataStorageType())) {
+            inputParameter.putAll(JSONUtils.toMap(taskInfo.getErrorDataStorageParameter(),String.class, String.class));
+        } else {
+            inputParameter.put(ERROR_DATA_FILE_DIR, CommonPropertyUtils.getString(ERROR_DATA_FILE_DIR,CommonPropertyUtils.ERROR_DATA_FILE_DIR_DEFAULT));
+        }
+
     }
 
     @Override
@@ -103,7 +112,7 @@ public abstract class BaseDataQualityConfigurationBuilder implements DataQuality
         }
         actualValueSourceConfig.setPlugin("jdbc");
         actualValueSourceConfig.setType(SourceType.METADATA.getDescription());
-        actualValueSourceConfig.setConfig(getDefaultSourceConfigMap(null,null));
+        actualValueSourceConfig.setConfig(getDefaultSourceConfigMap(null,"dv_actual_values"));
         return actualValueSourceConfig;
     }
 
@@ -125,13 +134,16 @@ public abstract class BaseDataQualityConfigurationBuilder implements DataQuality
     protected Map<String,Object> getDefaultSourceConfigMap(String sql, String dbTable) {
         Map<String,Object> actualValueConfigMap = new HashMap<>();
         actualValueConfigMap.put(URL, connectionInfo.getUrl());
-        actualValueConfigMap.put(DB_TABLE, dbTable);
         actualValueConfigMap.put(USER, connectionInfo.getUsername());
         actualValueConfigMap.put(PASSWORD, connectionInfo.getPassword());
         actualValueConfigMap.put(DRIVER, connectionInfo.getDriverName());
+        actualValueConfigMap.put(TABLE, dbTable);
+        actualValueConfigMap.put(OUTPUT_TABLE, dbTable);
         if (StringUtils.isNotEmpty(sql)) {
             actualValueConfigMap.put(SQL, sql);
         }
+
+        actualValueConfigMap.put(EXPECTED_VALUE, expectedValue.getName().replace(expectedValue.getOutputTable()+".", ""));
 
         return actualValueConfigMap;
     }

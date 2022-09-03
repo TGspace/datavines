@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.connector.api;
 
 import io.datavines.common.param.*;
@@ -25,7 +24,7 @@ public interface Connector {
 
     /**
      * get databases
-     * @param param
+     * @param param GetDatabasesRequestParam
      * @return
      */
     default ConnectorResponse getDatabases(GetDatabasesRequestParam param) throws SQLException {
@@ -34,7 +33,7 @@ public interface Connector {
 
     /**
      * get tables
-     * @param param
+     * @param param GetTablesRequestParam
      * @return
      */
     default ConnectorResponse getTables(GetTablesRequestParam param) throws SQLException {
@@ -43,7 +42,7 @@ public interface Connector {
 
     /**
      * get columns
-     * @param param
+     * @param param GetColumnsRequestParam
      * @return
      */
     default ConnectorResponse getColumns(GetColumnsRequestParam param) throws SQLException {
@@ -52,7 +51,7 @@ public interface Connector {
 
     /**
      * get partitions
-     * @param param
+     * @param param ConnectorRequestParam
      * @return
      */
     default ConnectorResponse getPartitions(ConnectorRequestParam param) {
@@ -61,15 +60,15 @@ public interface Connector {
 
     /**
      * get frontend config json
-     * @return
+     * @return String
      */
-    default String getConfigJson() {
+    default String getConfigJson(boolean isEn) {
         return null;
     }
 
     /**
      * test connect
-     * @param param
+     * @param param TestConnectionRequestParam
      * @return
      */
     default ConnectorResponse testConnect(TestConnectionRequestParam param) {
@@ -78,7 +77,7 @@ public interface Connector {
 
     /**
      * test connect
-     * @param param
+     * @param param TestConnectionRequestParam
      * @return
      */
     default ConnectorResponse executeQuery(TestConnectionRequestParam param) {

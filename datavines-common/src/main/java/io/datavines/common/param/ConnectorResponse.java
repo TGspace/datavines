@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.param;
 
 import lombok.Builder;
@@ -25,8 +24,6 @@ public class ConnectorResponse {
     private Status status;
 
     private Object result;
-
-    private String requestId;
 
     private String errorMsg;
 
@@ -44,14 +41,6 @@ public class ConnectorResponse {
 
     public void setResult(Object result) {
         this.result = result;
-    }
-
-    public String getRequestId() {
-        return requestId;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
     }
 
     public String getErrorMsg() {

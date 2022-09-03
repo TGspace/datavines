@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.repository.service.impl;
 
 import io.datavines.common.config.DataVinesQualityConfig;
@@ -75,8 +74,6 @@ public class JobExternalService {
 
     public Task executeCommand(Command command){
         Task task = taskService.getById(command.getTaskId());
-        task.setStartTime(LocalDateTime.now());
-        taskService.update(task);
         return task;
     }
 
@@ -84,8 +81,8 @@ public class JobExternalService {
         return taskService.update(task);
     }
 
-    public Long insertTask(Task task){
-        return taskService.insert(task);
+    public Long createTask(Task task){
+        return taskService.create(task);
     }
 
     public Long insertCommand(Command command){
@@ -125,9 +122,10 @@ public class JobExternalService {
         taskRequest.setEngineParameter(task.getEngineParameter());
         Map<String,String> inputParameter = new HashMap<>();
 
-        TaskInfo taskInfo = new TaskInfo(task.getId(),
-                                         task.getName(),task.getEngineType(),
-                                         task.getEngineParameter(),taskParameter);
+        TaskInfo taskInfo = new TaskInfo(task.getId(),task.getName(),
+                                         task.getEngineType(),task.getEngineParameter(),
+                                         task.getErrorDataStorageType(),task.getErrorDataStorageParameter(),task.getErrorDataFileName(),
+                                         taskParameter);
         DataVinesQualityConfig qualityConfig =
                 DataVinesConfigurationManager.generateConfiguration(inputParameter, taskInfo, DefaultDataSourceInfoUtils.getDefaultConnectionInfo());
         taskRequest.setApplicationParameter(JSONUtils.toJsonString(qualityConfig));
@@ -162,5 +160,9 @@ public class JobExternalService {
 
     public List<Task> getTaskListNeedFailover(List<String> host){
         return taskService.listTaskNotInServerList(host);
+    }
+
+    public JobService getJobService() {
+        return jobService;
     }
 }

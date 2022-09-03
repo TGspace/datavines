@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.utils;
 
 import java.io.File;
@@ -62,7 +61,7 @@ public class FileUtils {
             str = sb.toString();
             return str;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("read file error: {} ", e);
             return null;
         }
     }
@@ -112,5 +111,10 @@ public class FileUtils {
         }
 
         return fileName;
+    }
+
+    public static boolean isExist(String path) {
+        File file = new File(path);
+        return file.exists();
     }
 }

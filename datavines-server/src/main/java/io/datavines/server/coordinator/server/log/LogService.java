@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.server.log;
 
+import io.datavines.core.enums.ApiStatus;
+import io.datavines.core.exception.DataVinesServerException;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -58,9 +59,6 @@ public class LogService {
     public LogResult queryLog(long taskId, int offsetLine, int limit){
 
         Task task = getExecutionJob(taskId);
-        if (task == null) {
-            return null;
-        }
 
         List<String> contents = readPartFileContent(task.getLogPath(), offsetLine, limit);
         StringBuilder msg = new StringBuilder();
@@ -77,28 +75,24 @@ public class LogService {
 
     public LogResult queryWholeLog(long taskId){
         Task task = getExecutionJob(taskId);
-        if (task == null) {
-            return null;
-        }
         return new LogResult(readWholeFileContent(task.getLogPath()),0);
     }
 
     public byte[] getLogBytes(long taskId){
-
         Task task = getExecutionJob(taskId);
-        if (task == null) {
-            return null;
-        }
         return getFileContentBytes(task.getLogPath());
     }
 
     private Task getExecutionJob(long taskId) {
         Task task = taskService.getById(taskId);
-        if(task == null || StringUtils.isEmpty(task.getLogPath())){
-            logger.info("job {} is not exist",taskId);
-            return null;
+        if (null == task) {
+            logger.info("task {} is not exist", taskId);
+            throw new DataVinesServerException(ApiStatus.TASK_NOT_EXIST_ERROR, taskId);
         }
-
+        if (StringUtils.isEmpty(task.getLogPath())) {
+            logger.info("task log path {} is not exist", taskId);
+            throw new DataVinesServerException(ApiStatus.TASK_LOG_PATH_NOT_EXIST_ERROR, taskId);
+        }
         return task;
     }
 
@@ -150,7 +144,6 @@ public class LogService {
      *
      * @param filePath file path
      * @return byte array of file
-     * @throws Exception exception
      */
     private byte[] getFileContentBytes(String filePath) {
         InputStream in = null;

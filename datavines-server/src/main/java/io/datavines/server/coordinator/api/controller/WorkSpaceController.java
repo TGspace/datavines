@@ -14,24 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.api.controller;
 
-import io.datavines.common.dto.workspace.WorkSpaceCreate;
-import io.datavines.common.dto.workspace.WorkSpaceUpdate;
-import io.datavines.server.DataVinesConstants;
-import io.datavines.server.coordinator.api.aop.RefreshToken;
-import io.datavines.server.coordinator.api.entity.ResultMap;
+import io.datavines.core.constant.DataVinesConstants;
+import io.datavines.core.aop.RefreshToken;
+import io.datavines.server.coordinator.api.dto.bo.workspace.InviteUserIntoWorkspace;
+import io.datavines.server.coordinator.api.dto.bo.workspace.RemoveUserOutWorkspace;
+import io.datavines.server.coordinator.api.dto.bo.workspace.WorkSpaceCreate;
+import io.datavines.server.coordinator.api.dto.bo.workspace.WorkSpaceUpdate;
 import io.datavines.server.coordinator.repository.service.WorkSpaceService;
-import io.datavines.server.exception.DataVinesServerException;
+import io.datavines.core.exception.DataVinesServerException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Api(value = "workspace", tags = "workspace", produces = MediaType.APPLICATION_JSON_VALUE)
 @RestController
@@ -65,4 +62,25 @@ public class WorkSpaceController {
     public Object listByUserId()  {
         return workSpaceService.listByUserId();
     }
+
+    @ApiOperation(value = "invite user into workspace")
+    @PostMapping(value = "/inviteUser",consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Object inviteUserIntoWorkspace(@RequestBody InviteUserIntoWorkspace inviteUserIntoWorkspace) throws DataVinesServerException {
+        return workSpaceService.inviteUserIntoWorkspace(inviteUserIntoWorkspace);
+    }
+
+    @ApiOperation(value = "user removed workspace")
+    @DeleteMapping(value = "/removeUser",consumes = MediaType.APPLICATION_JSON_VALUE)
+    public Object removeUser(@RequestBody RemoveUserOutWorkspace removeUserOutWorkspace)  {
+        return workSpaceService.removeUser(removeUserOutWorkspace);
+    }
+
+    @ApiOperation(value = "list user by workspace id")
+    @GetMapping(value = "/userPage")
+    public Object listUserByWorkspaceId(@RequestParam("workspaceId") Long workspaceId,
+                                        @RequestParam("pageNumber") Integer pageNumber,
+                                        @RequestParam("pageSize") Integer pageSize)  {
+        return workSpaceService.listUserByWorkspaceId(workspaceId,pageNumber,pageSize);
+    }
+
 }

@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.registry.api;
 
 public enum ConnectionStatus {
     CONNECTED,
+    RECONNECTED,
     DISCONNECTED;
 }

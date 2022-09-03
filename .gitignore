@@ -18,9 +18,14 @@ target/
 .*.swp
 .vim
 .tmp
+node/
 node_modules
 npm-debug.log
 .vscode
+!datavines-ui/.vscode
+datavines-ui/node/*
+datavines-ui/dist/*
+datavines-ui/**/*.proxy.js
 logs/*
 .mvn/
 .www
@@ -29,3 +34,4 @@ t.*
 Chart.lock
 yarn.lock
 package-lock.json
+datavines-server/src/main/resources/static

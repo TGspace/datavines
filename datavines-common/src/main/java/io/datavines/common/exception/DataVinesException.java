@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.common.exception;
 
-public class DataVinesException extends Exception {
+public class DataVinesException extends RuntimeException {
 
     public DataVinesException() {
         super();

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.engine.config;
 
 import io.datavines.common.entity.TaskInfo;
@@ -34,7 +33,7 @@ import io.datavines.common.entity.ExecuteSql;
 import io.datavines.common.utils.placeholder.PlaceholderUtils;
 import io.datavines.metric.api.SqlMetric;
 
-import static io.datavines.engine.config.ConfigConstants.*;
+import static io.datavines.engine.api.ConfigConstants.*;
 
 public class MetricParserUtils {
 
@@ -97,12 +96,19 @@ public class MetricParserUtils {
         Map<String,Object> config = new HashMap<>();
         config.put(INDEX, index++);
         config.put(SQL, PlaceholderUtils.replacePlaceholders(executeSql.getSql(), inputParameterValueResult,true));
-        config.put(OUTPUT_TABLE, executeSql.getResultTable());
+        config.put(OUTPUT_TABLE, isInvalidateItems(type)? inputParameterValueResult.get(INVALIDATE_ITEMS_TABLE): executeSql.getResultTable());
         config.put(INVALIDATE_ITEMS_TABLE, inputParameterValueResult.get(INVALIDATE_ITEMS_TABLE));
+        config.put(ERROR_DATA_FILE_DIR, inputParameterValueResult.get(ERROR_DATA_FILE_DIR));
+        config.put(ERROR_DATA_FILE_NAME, inputParameterValueResult.get(ERROR_DATA_FILE_NAME));
+        config.put(SRC_CONNECTOR_TYPE, inputParameterValueResult.get(SRC_CONNECTOR_TYPE));
 
         TransformConfig transformerConfig = new TransformConfig(SQL, config);
         transformerConfig.setType(type);
         transformerConfigList.add(transformerConfig);
+    }
+
+    private static boolean isInvalidateItems(String type) {
+        return "invalidate_items".equalsIgnoreCase(type);
     }
 
     /**
@@ -117,20 +123,25 @@ public class MetricParserUtils {
         Map<String,String> newInputParameterValue = new HashMap<>(inputParameterValue);
 
         newInputParameterValue.remove(METRIC_TYPE);
-        newInputParameterValue.remove(METRIC_NAME);
+//        newInputParameterValue.remove(METRIC_NAME);
+        newInputParameterValue.remove(METRIC_DIMENSION);
         newInputParameterValue.remove(CREATE_TIME);
         newInputParameterValue.remove(UPDATE_TIME);
         newInputParameterValue.remove(TASK_ID);
         newInputParameterValue.remove(RESULT_FORMULA);
         newInputParameterValue.remove(OPERATOR);
         newInputParameterValue.remove(THRESHOLD);
-        newInputParameterValue.remove(FAILURE_STRATEGY);
         newInputParameterValue.remove(DATA_TIME);
-        newInputParameterValue.remove(ERROR_OUTPUT_PATH);
+        newInputParameterValue.remove(ERROR_DATA_FILE_NAME);
+        newInputParameterValue.remove(ERROR_DATA_FILE_DIR);
         newInputParameterValue.remove(EXPECTED_TYPE);
         newInputParameterValue.remove(EXPECTED_NAME);
         newInputParameterValue.remove(EXPECTED_TABLE);
         newInputParameterValue.remove(INVALIDATE_ITEMS_TABLE);
+        newInputParameterValue.remove(SRC_CONNECTOR_TYPE);
+        newInputParameterValue.remove(ACTUAL_TABLE);
+        newInputParameterValue.remove(REGEX_KEY);
+        newInputParameterValue.remove(NOT_REGEX_KEY);
 
         StringBuilder sb = new StringBuilder();
         for (String value : newInputParameterValue.values()) {

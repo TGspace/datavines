@@ -14,24 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.api.controller;
 
-import io.datavines.common.dto.user.UserLogin;
-import io.datavines.common.dto.user.UserRegister;
+import io.datavines.server.coordinator.api.dto.bo.user.UserLogin;
+import io.datavines.server.coordinator.api.dto.bo.user.UserRegister;
 import io.datavines.common.exception.DataVinesException;
-import io.datavines.server.DataVinesConstants;
-import io.datavines.server.coordinator.api.aop.RefreshToken;
-import io.datavines.server.coordinator.api.entity.ResultMap;
+import io.datavines.core.constant.DataVinesConstants;
+import io.datavines.core.aop.RefreshToken;
 import io.datavines.server.coordinator.repository.service.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Api(value = "user", tags = "user")
 @RestController

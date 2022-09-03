@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin;
 
+import io.datavines.metric.api.ConfigItem;
 import io.datavines.metric.api.MetricDimension;
 import io.datavines.metric.api.MetricType;
 import io.datavines.metric.plugin.base.BaseSingleTableColumn;
@@ -28,7 +28,8 @@ public class ColumnMatchNotRegex extends BaseSingleTableColumn {
 
     public ColumnMatchNotRegex(){
         super();
-        configSet.add("regexp");
+
+        configMap.put("regexp",new ConfigItem("regexp", "正则表达式", "regexp"));
 
         requiredOptions.add("regexp");
     }
@@ -36,6 +37,11 @@ public class ColumnMatchNotRegex extends BaseSingleTableColumn {
     @Override
     public String getName() {
         return "column_match_not_regex";
+    }
+
+    @Override
+    public String getZhName() {
+        return "正则表达式[不匹配]检查";
     }
 
     @Override
@@ -60,10 +66,5 @@ public class ColumnMatchNotRegex extends BaseSingleTableColumn {
             filters.add(" ${column} ${not_regex_key} '${regexp}'");
         }
         super.prepare(config);
-    }
-
-    @Override
-    public Set<String> getConfigSet() {
-        return configSet;
     }
 }

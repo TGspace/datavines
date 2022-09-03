@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.plugin;
 
+import io.datavines.metric.api.ConfigItem;
 import io.datavines.metric.api.MetricDimension;
 import io.datavines.metric.api.MetricType;
 import io.datavines.metric.plugin.base.BaseSingleTable;
@@ -33,6 +33,11 @@ public class TableRowCount extends BaseSingleTable {
     @Override
     public String getName() {
         return "table_row_count";
+    }
+
+    @Override
+    public String getZhName() {
+        return "表行数检查";
     }
 
     @Override
@@ -56,8 +61,7 @@ public class TableRowCount extends BaseSingleTable {
     }
 
     @Override
-    public Set<String> getConfigSet() {
-        return configSet;
+    public Map<String, ConfigItem> getConfigMap() {
+        return configMap;
     }
-
 }

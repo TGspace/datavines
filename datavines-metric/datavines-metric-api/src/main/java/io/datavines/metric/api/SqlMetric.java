@@ -14,10 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.api;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +27,12 @@ import io.datavines.spi.SPI;;
 public interface SqlMetric {
 
     String getName();
+
+    String getZhName();
+
+    default String getNameByLanguage(boolean isEn) {
+        return isEn ? getName() : getZhName();
+    }
 
     MetricDimension getDimension();
 
@@ -58,7 +62,15 @@ public interface SqlMetric {
 
     CheckResult validateConfig(Map<String,Object> config);
 
-    Set<String> getConfigSet();
+    Map<String, ConfigItem> getConfigMap();
 
     void prepare(Map<String,String> config);
+
+    /**
+     * get issue description
+     * @return issue
+     */
+    default String getIssue() {
+        return "";
+    }
 }

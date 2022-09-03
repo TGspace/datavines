@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.metric.expected.plugin;
 
 import io.datavines.metric.api.ExpectedValue;
@@ -29,13 +28,18 @@ public class MonthlyAvg implements ExpectedValue {
     }
 
     @Override
+    public String getZhName() {
+        return "月均值";
+    }
+
+    @Override
     public String getType() {
         return "monthly_avg";
     }
 
     @Override
     public String getExecuteSql() {
-        return "select round(avg(actual_value),2) as monthly_avg from dv_actual_values where  data_time >= date_trunc('MONTH', ${data_time}) and data_time <date_trunc('day', ${data_time}) and unique_code = ${unique_code}";
+        return "select round(avg(actual_value),2) as monthly_avg from dv_actual_values where data_time >= date_format(curdate(), '%Y-%m-01') and data_time < date_add(date_format(${data_time},'%Y-%m-%d'),interval 1 DAY) and unique_code = ${unique_code}";
     }
 
     @Override

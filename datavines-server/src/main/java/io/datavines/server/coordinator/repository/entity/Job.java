@@ -14,26 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package io.datavines.server.coordinator.repository.entity;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
-import io.datavines.common.entity.TaskParameter;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.datavines.common.enums.TimeoutStrategy;
-import io.datavines.server.enums.JobType;
+import io.datavines.common.enums.JobType;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
+@Data
 @TableName("dv_job")
 public class Job implements Serializable {
 
     private static final long serialVersionUID = -1L;
 
-    @TableId(type= IdType.ASSIGN_ID)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     @TableField(value = "name")
@@ -45,9 +43,36 @@ public class Job implements Serializable {
     @TableField(value = "datasource_id")
     private Long dataSourceId;
 
-    /**
-     * {@link TaskParameter}
-     */
+    @TableField(value = "datasource_id_2")
+    private Long dataSourceId2;
+
+    @TableField(value = "schema_name")
+    private String schemaName;
+
+    @TableField(value = "table_name")
+    private String tableName;
+
+    @TableField(value = "column_name")
+    private String columnName;
+
+    @TableField(value = "metric_type")
+    private String metricType;
+
+    @TableField(value = "execute_platform_type")
+    private String executePlatformType;
+
+    @TableField(value = "execute_platform_parameter",updateStrategy = FieldStrategy.IGNORED)
+    private String executePlatformParameter;
+
+    @TableField(value = "engine_type")
+    private String engineType;
+
+    @TableField(value = "engine_parameter",updateStrategy = FieldStrategy.IGNORED)
+    private String engineParameter;
+
+    @TableField(value = "error_data_storage_id",updateStrategy = FieldStrategy.IGNORED)
+    private Long errorDataStorageId;
+
     @TableField(value = "parameter")
     private String parameter;
 
@@ -63,130 +88,23 @@ public class Job implements Serializable {
     @TableField(value = "timeout_strategy")
     private TimeoutStrategy timeoutStrategy;
 
-    @TableField(value = "tenant_code")
-    private String tenantCode;
+    @TableField(value = "tenant_code",updateStrategy = FieldStrategy.IGNORED)
+    private Long tenantCode;
+
+    @TableField(value = "env",updateStrategy = FieldStrategy.IGNORED)
+    private Long env;
 
     @TableField(value = "create_by")
     private Long createBy;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @TableField(value = "create_time")
     private LocalDateTime createTime;
 
     @TableField(value = "update_by")
     private Long updateBy;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     @TableField(value = "update_time")
     private LocalDateTime updateTime;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public JobType getType() {
-        return type;
-    }
-
-    public void setType(JobType type) {
-        this.type = type;
-    }
-
-    public String getParameter() {
-        return parameter;
-    }
-
-    public void setParameter(String parameter) {
-        this.parameter = parameter;
-    }
-
-    public Long getDataSourceId() {
-        return dataSourceId;
-    }
-
-    public void setDataSourceId(Long dataSourceId) {
-        this.dataSourceId = dataSourceId;
-    }
-
-    public Integer getRetryTimes() {
-        return retryTimes;
-    }
-
-    public void setRetryTimes(Integer retryTimes) {
-        this.retryTimes = retryTimes;
-    }
-
-    public Integer getRetryInterval() {
-        return retryInterval;
-    }
-
-    public void setRetryInterval(Integer retryInterval) {
-        this.retryInterval = retryInterval;
-    }
-
-    public Integer getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(Integer timeout) {
-        this.timeout = timeout;
-    }
-
-    public TimeoutStrategy getTimeoutStrategy() {
-        return timeoutStrategy;
-    }
-
-    public void setTimeoutStrategy(TimeoutStrategy timeoutStrategy) {
-        this.timeoutStrategy = timeoutStrategy;
-    }
-
-    public String getTenantCode() {
-        return tenantCode;
-    }
-
-    public void setTenantCode(String tenantCode) {
-        this.tenantCode = tenantCode;
-    }
-
-    public Long getCreateBy() {
-        return createBy;
-    }
-
-    public void setCreateBy(Long createBy) {
-        this.createBy = createBy;
-    }
-
-    public LocalDateTime getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(LocalDateTime createTime) {
-        this.createTime = createTime;
-    }
-
-    public Long getUpdateBy() {
-        return updateBy;
-    }
-
-    public void setUpdateBy(Long updateBy) {
-        this.updateBy = updateBy;
-    }
-
-    public LocalDateTime getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(LocalDateTime updateTime) {
-        this.updateTime = updateTime;
-    }
 }
